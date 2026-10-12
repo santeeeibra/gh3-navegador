@@ -1,0 +1,9 @@
+LIBRARY xinput1_4
+EXPORTS
+  XInputGetState
+  XInputSetState
+  XInputGetCapabilities
+  XInputEnable
+  XInputGetKeystroke
+  XInputGetBatteryInformation
+  XInputGetStateEx @100

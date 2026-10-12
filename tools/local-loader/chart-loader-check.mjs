@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {createChartLoader} from './chart-loader.mjs';
+const pending=new Map(),reads=[],song={},errors=[];
+const loader=createChartLoader({song,readFile:path=>{reads.push(path);return new Promise((resolve,reject)=>pending.set(path,{resolve,reject}));},decode:(file,name,diff)=>({notes:[{t:file}],beats:[0]}),onError:e=>errors.push(e.message)});
+const old=loader.load('slowride'),latest=loader.load('talkdirtytome','expert');await Promise.resolve();
+pending.get('DATA/COMPRESSED/SONGS/talkdirtytome_song.pak.xen').resolve(2);assert.equal((await latest).name,'talkdirtytome');
+pending.get('DATA/COMPRESSED/SONGS/slowride_song.pak.xen').resolve(1);assert.equal(await old,null);assert.equal(song.chart.name,'talkdirtytome');assert.equal(song.chart.diff,'expert');
+await loader.load('talkdirtytome','expert');assert.equal(reads.length,2);
+const failed=loader.load('one');await Promise.resolve();pending.get('DATA/COMPRESSED/SONGS/one_song.pak.xen').reject(Error('missing'));await assert.rejects(failed,/missing/);assert.equal(loader.current,undefined);
+const retry=loader.load('one');await Promise.resolve();pending.get('DATA/COMPRESSED/SONGS/one_song.pak.xen').resolve(3);await retry;assert.equal(song.chart.name,'one');assert.equal(errors.length,1);
+await assert.rejects(loader.load('../escape'));await assert.rejects(loader.load('one','invalid'));
+const cancel=loader.load('storyofmylife');await Promise.resolve();loader.cancel();pending.get('DATA/COMPRESSED/SONGS/storyofmylife_song.pak.xen').resolve(4);assert.equal(await cancel,null);assert.equal(song.chart.name,'one');
+console.log('Chart loader: changed song, difficulty, deduplication, stale result, error retry, invalid names, cancellation OK.');

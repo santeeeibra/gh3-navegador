@@ -1,0 +1,1 @@
+{ "addr": "0x829B57B0", "kind": "ms", "offsetMs": -450, "diff": "medium", "navEnd": 264, "nota": "reloj de la canción (float BE ms; 0 en menús, negativo en la cuenta regresiva, se congela al perder). offsetMs: el juicio/imagen del juego va ~450 ms detrás; con -450 el robot nativo completó Slow Ride Medium (477/477 rasgueos, 2026-10-10)" }

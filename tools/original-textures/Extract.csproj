@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../toolchain/neversoft-texture-source/XenImgFile.cs" />
+    <Compile Include="../../toolchain/neversoft-texture-source/DxtDecoder.cs" />
+    <Compile Include="../../toolchain/neversoft-texture-source/Ps2Texture.cs" />
+    <Compile Include="../../toolchain/neversoft-texture-source/Ps2TexResult.cs" />
+    <Compile Include="../../toolchain/neversoft-texture-source/NextGenTexFile.cs" />
+    <Compile Include="../../toolchain/neversoft-texture-source/XenosTiling.cs" />
+  </ItemGroup>
+</Project>

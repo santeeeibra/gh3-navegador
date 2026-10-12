@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{inspectGameFile}from'../src/original/probe.js';
+test('uses bytes rather than trusting the extension',async()=>{const f=new File([new Uint8Array([77,90,0,0])],'game.iso');const r=await inspectGameFile(f);assert.equal(r.format,'Ejecutable de Windows');assert.equal(r.platform,'Windows / PC');});
+test('ISO format does not imply PS2 compatibility',async()=>{const bytes=new Uint8Array(40000);bytes.set(new TextEncoder().encode('CD001'),32769);const r=await inspectGameFile(new File([bytes],'game.iso'));assert.equal(r.format,'Imagen ISO 9660');assert.equal(r.platform,'Por confirmar');});
+test('empty or unknown file remains unidentified',async()=>{const r=await inspectGameFile(new File([],'GuitarHero.zip'));assert.equal(r.format,'Desconocido');});

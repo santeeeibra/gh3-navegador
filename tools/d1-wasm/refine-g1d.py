@@ -1,0 +1,10 @@
+from pathlib import Path
+p=Path('tools/d1-wasm/run-g1d-native.py');s=p.read_text();s=s.replace("'log_level = \"debug\"'","'log_level = \"trace\"'")
+s=s.replace("(bindir/'gh3recomp.toml').write_text(config,encoding='utf-8')", "config += '\\nlog_noisy = true\\n[log.levels]\\ngpu = \"warn\"\\napu = \"warn\"\\nsys = \"debug\"\\nfs = \"trace\"\\nkrnl = \"trace\"\\n'\n(bindir/'gh3recomp.toml').write_text(config,encoding='utf-8')")
+s=s.replace("out=root/'artifacts/d1-wasm/g1d/native'","out=root/'artifacts/d1-wasm/g1d/native-natural'").replace('cleanup-g1d-native.ps1','cleanup-g1d-natural.ps1')
+p.write_text(s)
+p=Path('tools/d1-wasm/cleanup-g1d-native.ps1');Path('tools/d1-wasm/cleanup-g1d-natural.ps1').write_text(p.read_text().replace('g1d/native','g1d/native-natural'))
+p=Path('artifacts/d1-wasm/rtsrc/include/g1d_metrics.h');s=p.read_text().replace('inline unsigned mainId=0;','inline std::atomic<unsigned> mainId{0};')
+s=s.replace('double c=id==mainId?Cpu():-1;','double c=Cpu();')
+s=s.replace('mainCpuMs','callerCpuMs')
+p.write_text(s)

@@ -1,0 +1,8 @@
+{
+  "config": {"claudeModel":"claude-opus-5-5","timeoutMs":180000},
+  "tasks": [
+    {"id":"claude-checkpoint","owner":"claude","mode":"read-only","depends":[],"resources":[],"context":["artifacts/d1-wasm/CHECKPOINT-CLAUDE-2026-10-09.md"],"objective":"Resumí el checkpoint en hasta 80 palabras. Confirmá que R3a no empezó, la zona está libre y falta la firma de menú en Edge. No hacer el trabajo R3a.","requiredTerms":["R3a","Edge"]},
+    {"id":"codex-review-checkpoint","owner":"codex","mode":"read-only","depends":["claude-checkpoint"],"resources":[],"context":["artifacts/d1-wasm/CHECKPOINT-CLAUDE-2026-10-09.md"],"objective":"Revisá el mensaje de Claude contra el checkpoint adjunto, en hasta 80 palabras. Identificá R3a como próximo trabajo y distinguí firma Node de Edge. No acceder a herramientas ni editar archivos. Evidencia = fuente adjunta y mensaje anterior.","requiredTerms":["R3a","Edge"]},
+    {"id":"claude-receives-review","owner":"claude","mode":"read-only","depends":["codex-review-checkpoint"],"resources":[],"context":[],"objective":"Confirmá recepción de la revisión de Codex y resumí la tarea pendiente R3a y comprobación Edge en hasta 50 palabras. Evidencia = ID y contenido del mensaje recibido. No iniciar trabajo.","requiredTerms":["R3a","Edge"]}
+  ]
+}

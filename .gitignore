@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.vercel/
+artifacts/
+AGENTS.md
+.vercel
+original-data/
+CLAUDE.md
+toolchain/
+# carpetas creadas por error (perfil de Edge de prueba, rutas mal armadas)
+guitar herooriginal-dataedge-profile/
+hero/
+.claude/
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
