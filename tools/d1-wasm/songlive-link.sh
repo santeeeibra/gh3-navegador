@@ -21,7 +21,7 @@ sed -e "s#\"\$A\"/rt-obj/\*.o#\"$VIEW\"/*.o#" -e "s#\"\$ROOT/tools/d1-wasm/d4_we
 grep -q "$VIEW" "$TMP/l.sh" && grep -q "songlive_web.js" "$TMP/l.sh" || { echo "no se pudo redirigir objetos/pre-js"; exit 1; }
 [ -z "${SONGLIVE_EXTRA:-}" ] || cp "$ROOT/$SONGLIVE_EXTRA"/*.o "$VIEW/"
 cp "$TMP/l.sh" "$ROOT/tools/d1-wasm/.songlive-link-tmp.sh"; rm -rf "$TMP"
-set +e; OBJDIR=r6/obj-simd LINK_OUT="$S/web" bash "$ROOT/tools/d1-wasm/.songlive-link-tmp.sh"; rc=$?; set -e
+set +e; OBJDIR=${SONGLIVE_OBJDIR:-r6/obj-simd} LINK_OUT="$S/web" bash "$ROOT/tools/d1-wasm/.songlive-link-tmp.sh"; rc=$?; set -e
 rm -f "$ROOT/tools/d1-wasm/.songlive-link-tmp.sh"; [ $rc -eq 0 ] || exit $rc
 [ ! -s "$S/web/undefined.txt" ] || { echo "símbolos sin definir:"; cat "$S/web/undefined.txt"; exit 1; }
 R6_SONG_WEB="${S#$ROOT/}/web" R6_SONG_OUT="${S#$ROOT/}/song" node "$ROOT/tools/d1-wasm/song-build.mjs" > /dev/null
