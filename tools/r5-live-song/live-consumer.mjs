@@ -4,6 +4,7 @@ import {createResourceReader,prepareLiveSongDraw} from './live-prepare.mjs';
 import {createLiveSongRenderer} from './live-renderer.mjs';
 import {readLiveDraws} from './live-reader.mjs';
 import {decodeBCTexture} from '../iphone-probe/bc-rgba.mjs';
+import {binkPairs,binkShaders} from './bink.mjs';
 const shaders=__SONG_SHADERS__,roadVS=new Set(['B43CF443883B8351','87D4CAE67E72C501','582ABCF5FF619A55','80708BD1B82638B0','94B97981B512BDA2','19815E13AC0DCC92']),state={mode:__SONG_MODE__,received:0,submitted:0,presented:0,droppedInit:0,droppedBusy:0,droppedPresentation:0,skips:{},timing:{count:0,parseMs:0,prepareMs:0,pipelineMs:0,resourceMs:0,replayMs:0,gpuWaitMs:0,totalMs:0},fatal:null};
 const presentation=new SharedArrayBuffer(4),pending=new Int32Array(presentation);
 let init,renderer,resources,hash,context,canvas,busy=false,lastReport=0;
@@ -22,7 +23,7 @@ globalThis.__r5liveConsumer=(bytes,info,api)=>{
  busy=true;const start=performance.now();
  try{
   let parseMs=0,prepareMs=0;const inputs=[],pairs={},skips={},counts={};resources.begin();
-  const wanted=__SONG_MODE__==='road'?roadVS:null,verifyShaders=wanted?new Set([...roadVS,'526B394DE2AB8891','F34502A7B2BCEAB0','0295964C4221D881','49284DED0773CE79','423450BC1BF1038D']):null,events=readLiveDraws(bytes,{hash,wanted,verifyShaders,counts});
+  const wanted=__SONG_MODE__==='road'?new Set([...roadVS,...binkPairs.keys()]):null,verifyShaders=wanted?new Set([...wanted,...binkShaders,'526B394DE2AB8891','F34502A7B2BCEAB0','0295964C4221D881','49284DED0773CE79','423450BC1BF1038D']):null,events=readLiveDraws(bytes,{hash,wanted,verifyShaders,counts});
   // Guest reads and register replay complete synchronously before GPU awaits.
   for(;;){
    let at=performance.now();const next=events.next();parseMs+=performance.now()-at;if(next.done)break;const d=next.value;at=performance.now();

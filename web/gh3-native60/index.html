@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="es">
+<head><script src="native60-page.js"></script><script>{const q=new URLSearchParams(location.search);let change=false;for(const [k,v] of Object.entries({song:'1',cpwait:'event',audio:'silent',xma:'decode',waitmulti:'event',audiotap:'1',r5live:'1',r5lite:'1',cpasync:'1',r5liveconsumer:'r5snap-native60-render.js',manual:'1'}))if(!q.has(k)){q.set(k,v);change=true;}
+/* Gráficos del panel (Claude): se guardan en localStorage gh3gfx y mandan sobre la URL salvo ?gfx=url. */
+let g=null;try{g=JSON.parse(localStorage.getItem('gh3gfx')||'null');}catch{}
+/* Calidad (Claude, copia colas): gh3q = auto|completo|liviano|muy. Auto mira núcleos y memoria de la PC. */
+let qv=null;try{qv=localStorage.getItem('gh3q');}catch{}
+const gh3Cel=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1)||(matchMedia('(pointer: coarse)').matches&&!matchMedia('(any-pointer: fine)').matches);
+const autoQ=()=>gh3Cel?'muy':'liviano'; // Claude 2026-10-12: celular = la más fluida a propósito (pedido de Santi); PC = Liviana con colas.
+const qual=(!qv||qv==='auto')?autoQ():qv;window.gh3Quality={chosen:qv||'auto',used:qual,mobile:gh3Cel,cores:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0};
+if(q.get('gfx')!=='url'){/* hw60 (Claude 2026-10-13): consumidor con lector de la autopista fluida salvo ?hw60=0 */const hw='r5snap-native60-';const want={r5liveconsumer:hw+(({completo:'scene',liviano:'colas'})[qual]||'render')+'.js',r5lite:qual==='completo'?null:'1',r5inflight:g&&g.inflight&&g.inflight!==2?String(g.inflight):null};
+ for(const [k,v] of Object.entries(want)){if(v===null){if(q.has(k)){q.delete(k);change=true;}}else if(q.get(k)!==v){q.set(k,v);change=true;}}}
+if(change&&q.toString()!==location.search.slice(1))location.replace(location.pathname+'?'+q);}</script>
+<meta charset="utf-8">
+<script src="gh3-diag.js"></script><script>window.gh3LoaderConfig={manifest:"/gh3/manifest.json",onDemand:true};</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Guitar Hero III · PC y móvil</title>
+<link rel="manifest" href="gh3.webmanifest">
+<link rel="apple-touch-icon" href="gh3-icon-180.png">
+<link rel="icon" type="image/png" href="gh3-icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GH3">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0b10">
+<style>
+  :root { --bg:#f6f6f4; --fg:#1d1d1b; --muted:#6b6b66; --ok:#1f7a3a; --bad:#b3261e; --box:#fff; --line:#ddd; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161615; --fg:#ececea; --muted:#9a9a94; --ok:#5cc47e; --bad:#ff8a80; --box:#202020; --line:#333; } }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--fg); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:960px; margin:0 auto; }
+  .note { color:var(--muted); font-size:13px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:12px 0; }
+  .card { background:var(--box); border:1px solid var(--line); border-radius:8px; padding:12px; }
+  #checks li.ok { color:var(--ok); } #checks li.bad { color:var(--bad); }
+  pre { background:var(--box); border:1px solid var(--line); border-radius:8px; padding:8px; height:45vh; overflow:auto; font-size:12px; white-space:pre-wrap; }
+  button { font:inherit; padding:6px 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>GH3 · entrar y jugar</h1>
+  <p class="note">Prueba local del original con gráficos parciales. Prepará las canciones una vez y volvé a jugar desde este navegador.</p>
+  <div class="row card">
+    <label>Carpeta del juego (la que tiene default.xex):
+      <input id="dir" type="file" webkitdirectory multiple></label>
+    <label>Segundos: <input id="secs" type="number" value="10" min="2" max="120" style="width:5em"></label>
+    <label>GPU: <select id="gpu"><option value="none">Sin GPU (D3/D4)</option><option value="null">GPU nula (G1, sin imagen)</option></select></label>
+    <button id="go" disabled>Arrancar</button>
+    <button id="pressStart" disabled>Pulsar START</button>
+    <button id="pressA" disabled>Pulsar A</button>
+  </div>
+  <div class="row card">
+    <span id="status">Prepará las canciones.</span>
+  </div>
+  <div class="row card" id="r3cBox" hidden>
+    <canvas id="r3c" width="320" height="180" style="width:320px;height:180px;border:1px solid var(--line)"></canvas>
+    <div><strong>Prueba del backend (latido R3c)</strong><br>
+      <span class="note">El hilo del CP limpia un lienzo WebGPU con un color distinto en cada swap del juego.<br>
+      NO es un cuadro de GH3: no usa shaders ni datos del juego.</span><br>
+      <span id="r3cStat" class="note"></span></div>
+  </div>
+  <div id="r5Box" class="card" hidden><canvas id="r5Canvas" width="1280" height="720" style="width:100%;height:auto"></canvas><p id="r5Stat">Draw del video de GH3 en ejecución. Prueba parcial, sin menú 3D ni canción jugable.</p></div><ul id="checks" class="card"></ul>
+  <pre id="log"></pre>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const VD = ['VdSetGraphicsInterruptCallback', 'VdInitializeRingBuffer', 'VdEnableRingBufferRPtrWriteBack'];
+let picked = [];
+const result = window.d4 = { isolated: crossOriginIsolated, marks: {}, vd: {}, peakMemBytes: 0, exit: null, lines: 0, log: [] };
+$('dir').onchange = () => {
+  const all = [...$('dir').files];
+  // webkitRelativePath = "<carpeta elegida>/DATA/..." → quitar el primer tramo.
+  picked = all.map((f) => ({ name: f.webkitRelativePath.split('/').slice(1).join('/'), data: f }));
+  const xex = picked.some((f) => f.name === 'default.xex');
+  $('status').textContent = `${picked.length} archivos` + (xex ? ' · default.xex encontrado' : ' · FALTA default.xex en la raíz');
+  $('go').disabled = !xex;
+};
+function check(text, ok) { const li = document.createElement('li'); li.textContent = (ok ? '✔ ' : '✘ ') + text; li.className = ok ? 'ok' : 'bad'; $('checks').append(li); }
+$('go').onclick = () => {
+  $('go').disabled = true;
+  if (!crossOriginIsolated) { check('crossOriginIsolated (SharedArrayBuffer) no disponible', false); return; }
+  const t0 = performance.now();
+  const logEl = $('log');
+  const w = new Worker(`gh3-web.js?seconds=${Number($('secs').value) || 10}&log=${new URLSearchParams(location.search).get('log') || 'info'}&gpu=${$('gpu').value}&audio=${new URLSearchParams(location.search).get('audio') || 'silent'}&xma=${new URLSearchParams(location.search).get('xma') || 'decode'}${new URLSearchParams(location.search).get('press') ? '&press=' + encodeURIComponent(new URLSearchParams(location.search).get('press')) : ''}${new URLSearchParams(location.search).get('cpwait') ? '&cpwait=' + encodeURIComponent(new URLSearchParams(location.search).get('cpwait')) : ''}${['save', 'savels', 'waitmulti', 'audiotap', 'padtype', 'r5frame', 'r5framemax', 'r5live', 'r5liveconsumer', 'r5livemax', 'r5optcheck', 'r5lite', 'r5inflight', 'r3ayield', 'r3acheck', 'cpasync', 'r3bbudget', 'r3bpkts', 'r3bfake', 'r3c', 'r5snap', 'r5select', 'r5test', 'r5max', 'r5consumer'].map((k) => new URLSearchParams(location.search).get(k) ? '&' + k + '=' + encodeURIComponent(new URLSearchParams(location.search).get(k)) : '').join('')}`, { name: 'gh3-main' });
+  // G1e: botones del mando programable (en vivo). La URL puede traer ?press=150:start como calendario.
+  window.d4press = (buttons, ms = 300) => w.postMessage({ type: 'press', buttons, ms });
+  $('pressStart').disabled = false; $('pressStart').onclick = () => window.d4press(0x0010);
+  $('pressA').disabled = false; $('pressA').onclick = () => window.d4press(0x1000);
+  w.onerror = (e) => { check('error en el worker: ' + e.message, false); result.workerError = { message: e.message, file: e.filename, line: e.lineno, t: (performance.now() - t0) / 1000, afterExit: result.exit !== null }; if (result.exit === null) result.exit = 'worker-error'; };
+  // R3c: lienzo de presentación (bitmaprenderer) y lienzo chico para leer un píxel.
+  const r3cCtx = $('r3c').getContext('bitmaprenderer');
+  const r3cProbe = new OffscreenCanvas(1, 1);
+  let r3cPending = null, r3cRaf = 0;
+  result.r3c = { received: 0, drawn: 0, replaced: 0, pixelOk: 0, pixelBad: 0, pixelErrors: 0, colors: {} };
+  w.onmessage = (e) => {
+    const m = e.data;
+    if(m.type==='r5SongReport'){result.songRenderer=m.data;return;}
+if(m.type==='r5SongFrame'){
+try{$('r5Canvas').getContext('bitmaprenderer').transferFromImageBitmap(m.bitmap);$('r5Box').hidden=false;result.songPresented=(result.songPresented||0)+1;result.songLast=m.info;$('r5Stat').textContent='Imagen original parcial · '+result.songPresented+' cuadros presentados · '+m.info.accepted+' dibujos · secuencia '+m.info.seq;}finally{Atomics.store(new Int32Array(m.latch),0,0);}return;
+}
+if (m.type === 'log') {
+      result.lines++; result.log.push(m.text);
+      if (result.log.length > 25000) result.log.splice(0, result.log.length - 20000);
+      (window.logBuf = window.logBuf || []).push(m.text);
+      const sp = /songs\\([a-z0-9_]+)_song\.pak\.xen/i.exec(m.text); if (sp) window.songPak = sp[1].toLowerCase();
+      if (!window.logTimer) window.logTimer = setTimeout(() => { window.logTimer = null; const t = window.logBuf.join('\n'); window.logBuf = [];
+        logEl.textContent = (logEl.textContent + t + '\n').slice(-60000); logEl.scrollTop = logEl.scrollHeight; }, 1000);
+      for (const v of VD) if (!result.vd[v] && m.text.includes(v)) { result.vd[v] = m.t; check(`${v} a los ${m.t.toFixed(2)} s`, true); }
+      const mk = m.text.match(/^\[d2\] ([\d.]+) s (.+)$/);
+      if (mk && !result.marks[mk[2]]) result.marks[mk[2]] = m.t;
+    } else if (m.type === 'mark') {
+      result.marks[m.what] = m.t;
+      if (/^partida/.test(m.what)) window.gh3Save = { ...m, at: Date.now() };
+      if (m.what === 'data-ls') window.gh3DataLs = m.list;
+      $('status').textContent = `${m.what} · ${m.t.toFixed(2)} s`;
+    } else if (m.type === 'r3cFrame') {
+      // R3c: la imagen llega del hilo del CP. Se verifica el color de un píxel y se dibuja en el
+      // próximo requestAnimationFrame (presentación efectiva). Si llega otra antes, se reemplaza.
+      const R = result.r3c;
+      R.received++;
+      try {
+        const probe = r3cProbe.getContext('2d', { willReadFrequently: true });
+        probe.drawImage(m.bitmap, 8, 8, 1, 1, 0, 0, 1, 1);
+        const px = probe.getImageData(0, 0, 1, 1).data;
+        const ok = px[0] === m.color[0] && px[1] === m.color[1] && px[2] === m.color[2];
+        ok ? R.pixelOk++ : R.pixelBad++;
+        R.colors[m.color.join(',')] = (R.colors[m.color.join(',')] || 0) + 1;
+      } catch (err) { R.pixelErrors++; }
+      if (r3cPending) { r3cPending.bitmap.close(); R.replaced++; w.postMessage({ type: 'r3cAck' }); }
+      r3cPending = m;
+      if (!r3cRaf) r3cRaf = requestAnimationFrame(() => {
+        r3cRaf = 0;
+        const f = r3cPending; r3cPending = null;
+        if (!f) return;
+        r3cCtx.transferFromImageBitmap(f.bitmap);
+        R.drawn++; R.lastIdx = f.idx; R.lastColor = f.color; R.lastDrawT = (performance.now() - t0) / 1000;
+        w.postMessage({ type: 'r3cAck' });
+        $('r3cStat').textContent = `swap ${f.idx} · color ${f.color.join(',')} · dibujadas ${R.drawn} · recibidas ${R.received}`;
+      });
+      $('r3cBox').hidden = false;
+     } else if(m.type==='r5LiveReport') {
+      result.r5Live=m.data;
+    } else if(m.type==='r5LiveFrame') {
+      $('r5Canvas').getContext('bitmaprenderer').transferFromImageBitmap(m.bitmap);
+      $('r5Box').hidden=false;result.r5Frames=(result.r5Frames||0)+1;result.r5Last=m.info;
+      $('r5Stat').textContent='Video GH3: '+result.r5Frames+' draws mostrados · secuencia '+m.info.seq+' · prueba parcial sin canción jugable';
+    } else if (m.type === 'r6AudioRing') {
+      window.r6StartAudio(m.sab, m.ptr);
+    } else if (m.type === 'g1eInput') {
+      window.gh3Input.attach(m.sab, m.ptr);  // C1: teclado y mando -> mando del juego
+    } else if (m.type === 'mem') {
+      result.peakMemBytes = Math.max(result.peakMemBytes, m.bytes);
+    } else if (m.type === 'exit') {
+      result.exit = m.code; result.exitWhat = m.what; result.wallSeconds = (performance.now() - t0) / 1000;
+      const allVd = VD.every((v) => result.vd[v]);
+      check(`fin (código ${m.code}${m.what ? ': ' + m.what : ''}) a los ${result.wallSeconds.toFixed(1)} s; memoria wasm máx ${(result.peakMemBytes / 1048576).toFixed(0)} MB`, m.code === 0);
+      check(allVd ? 'llegó a las 3 órdenes de video (igual que Node/nativo sin GPU)' : 'NO llegó a las 3 órdenes de video', allVd);
+      w.terminate();
+    }
+  };
+  w.postMessage({ type: 'files', files: picked, localCache: window.gh3LoaderMount });
+  $('status').textContent = 'Compilando wasm (124 MB)…';
+};
+</script>
+<p id="c1Input" class="card">Controles: cargando…</p>
+<script src="gh3-stage.js"></script>
+<script src="gh3-input.js"></script>
+<script src="gh3-touch.js"></script>
+<script src="gh3-tape.js"></script>
+<script src="gh3-landscape.js"></script>
+<script src="r5snap-panel.js"></script>
+<script src="gh3-mobile-ui.js"></script>
+<script src="gh3-pro.js"></script>
+<script src="gh3-cheats.js"></script>
+<p id="r6Audio" class="card">Audio: tocá Iniciar para habilitar el sonido.</p>
+<button id="r6ResetAudio" disabled>Reacomodar sonido</button>
+<script>
+// Valores de la demo: GPU nula y 300 s (se pueden cambiar a mano).
+try { document.getElementById('secs').value = '1500'; document.getElementById('gpu').value = 'null'; } catch {}
+// R6: el AudioContext necesita un clic del usuario (el botón Iniciar).
+document.addEventListener('click', () => {
+  if (window.r6ctx) return;
+  window.r6ctx = new AudioContext({ sampleRate: 48000, latencyHint: 'interactive' });
+  window.r6ready = window.r6ctx.audioWorklet.addModule(URL.createObjectURL(new Blob(["class R6 extends AudioWorkletProcessor {\n  constructor(o) { super(); const { sab, ptr } = o.processorOptions;\n    this.w = new Uint32Array(sab, ptr, 1); this.cap = new Uint32Array(sab, ptr + 4, 1)[0];\n    this.d = new Float32Array(sab, ptr + 8, this.cap * 2); this.r = -1; this.wait = true; this.target = 9600;\n    this.st = { played: 0, underruns: 0, silentBlocks: 0, skips: 0 };\n    this.port.onmessage = (e) => {\n      if (e.data?.type === 'reset') { this.r = -1; this.wait = true; }\n      if (e.data?.type === 'target') { this.target = Math.max(1440, Math.min(19200, e.data.samples | 0)); return; }\n      const w = Atomics.load(this.w, 0); if (this.w0 === undefined) this.w0 = w;\n      this.port.postMessage({ ...this.st, written: (w - this.w0) >>> 0, wNow: w, lag: this.r < 0 ? 0 : (w - this.r) >>> 0 }); }; }\n  // Claude 2026-10-12: ritmo adaptable (0,96–1,03, interpolación lineal): si el juego produce algo más lento que el tiempo real (celular), el sonido acompaña en vez de vaciar el colchón y cortarse.\n  process(_, outs) { const L = outs[0][0], R = outs[0][1] || L, n = L.length, w = Atomics.load(this.w, 0), cap = this.cap, d = this.d;\n    if (this.r < 0) { if (w < this.target) return true; this.r = (w - this.target) >>> 0; this.f = 0; this.avg = this.target; this.wait = false; }\n    let lag = (w - this.r) >>> 0;\n    if (lag > cap - 2048 || (!this.wait && lag > this.target * 2 + 4800)) { this.r = (w - this.target) >>> 0; this.f = 0; lag = this.avg = this.target; this.st.skips++; }\n    if (this.wait) { if (lag < (this.target >> 1)) { this.st.silentBlocks++; return true; } this.wait = false; this.avg = lag; }\n    this.avg += (lag - this.avg) * 0.002;\n    const rate = Math.max(0.96, Math.min(1.03, 1 + (this.avg - this.target) / this.target * 0.04));\n    if (lag < n * rate + 2) { this.wait = true; this.st.underruns++; this.st.silentBlocks++; return true; }\n    let r = this.r, f = this.f;\n    for (let i = 0; i < n; i++) { const s0 = (r % cap) * 2, s1 = ((r + 1) % cap) * 2; L[i] = d[s0] + (d[s1] - d[s0]) * f; R[i] = d[s0 + 1] + (d[s1 + 1] - d[s0 + 1]) * f; f += rate; const k = f | 0; r = (r + k) >>> 0; f -= k; }\n    this.r = r; this.f = f; this.st.played += n; this.st.rate = rate; return true; } }\nregisterProcessor('r6-gh3', R6);"], { type: 'text/javascript' })));
+}, { capture: true });
+window.r6StartAudio = async (sab, ptr) => {
+  const el = document.getElementById('r6Audio');
+  if (!window.r6ctx) { el.textContent = 'Audio: sin clic previo, no se puede reproducir.'; return; }
+  await window.r6ready; await window.r6ctx.resume();
+  const node = new AudioWorkletNode(window.r6ctx, 'r6-gh3', { outputChannelCount: [2], processorOptions: { sab, ptr } });
+  window.r6node = node;
+  node.connect(window.r6ctx.destination);
+  let previous = null;
+  node.port.onmessage = (e) => {
+    const now = performance.now(), rate = previous ? (((e.data.wNow - previous.w) >>> 0) / ((now - previous.at) * 48)) : null;
+    previous = { w: e.data.wNow, at: now };
+    window.d4.r6Audio = { ...e.data, productionRatio: rate, ctxState: window.r6ctx.state, sampleRate: window.r6ctx.sampleRate, baseLatency: window.r6ctx.baseLatency, outputLatency: window.r6ctx.outputLatency };
+    el.textContent = 'Audio GH3: ' + (e.data.played / 48000).toFixed(1) + ' s reproducidos · cortes ' + e.data.underruns + ' · colchón ' + (e.data.lag / 48).toFixed(0) + ' ms' + (rate === null ? '' : ' · ritmo de audio ' + (rate * 100).toFixed(0) + '%'); };
+  setInterval(() => node.port.postMessage(0), 500);
+  const reset = document.getElementById('r6ResetAudio'); reset.disabled = false;
+  reset.onclick = async () => { await window.r6ctx.resume(); node.port.postMessage({ type: 'reset' }); };
+};
+</script>
+<div class="card" id="songBox"><b>Slow Ride · gráficos parciales del original; sonido, controles y juicio del juego</b><br>
+<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+<canvas id="hw" width="440" height="620" style="background:#111;max-width:100%"></canvas>
+<div style="flex:1;min-width:260px">
+<p><button id="skipIntro" disabled>Saltear intro</button> <button id="goSong" disabled>Ir directo a tocar</button><br>
+<small>Saltear intro: pasa rápido los videos del arranque y sigue solo hasta la canción (~65 s). Ir directo a tocar: también pasa rápido los menús (~50 s).</small><br>
+<span id="navStat"></span></p>
+<b id="stepsTitle">Pasos hasta la canción (los hace el juego solo):</b>
+<ol id="songSteps" style="padding-left:22px;line-height:1.7"></ol>
+<p id="stepsMode"></p></div></div>
+<p id="songStat">Prepará las canciones y tocá Jugar. Los menús no tienen imagen todavía: seguí los pasos de la lista.</p>
+<p style="font-weight:bold">Para acertar: mantené la tecla del color (A S D F G) y apretá ↓ o ↑ cuando la nota llegue al aro. Apretar solo el color no rasguea.</p>
+<button id="copySongAudio">Copiar estado del sonido</button><pre id="songAudioDiagnostic" hidden style="white-space:pre-wrap"></pre>
+<p>Teclado en la canción: trastes A S D F G (o 1-5), rasgueo flecha abajo/arriba, poder estelar Espacio. Mando en la canción (esquema de GH3): verde L2/LT, rojo L1/LB, amarillo R1/RB, azul R2/RT, naranja Cruz/A, rasgueo cruceta.
+Ajuste de la referencia provisoria oculta (no mueve la imagen original), ms: <input id="songOff" type="number" value="-450" step="10" style="width:70px">
+<button id="notesLater">Notas más tarde</button> <button id="notesEarlier">Notas más temprano</button>
+<button id="syncReset">Restablecer</button><br>
+<small>Se guarda en este navegador. Si las notas llegan antes del sonido, probá «Notas más tarde» (20 ms por clic). Mantené el traste y rasgueá con la flecha cuando la nota llegue al aro.</small></p></div>
+<script src="gh3-song.js"></script>
+
+<script>
+(() => {
+  const CLOCK = {"addr":"0x829B57B0","kind":"ms","offsetMs":-450,"diff":"medium","navEnd":264,"nota":"reloj de la canción (float BE ms; 0 en menús, negativo en la cuenta regresiva, se congela al perder). offsetMs: el juicio/imagen del juego va ~450 ms detrás; con -450 el robot nativo completó Slow Ride Medium (477/477 rasgueos, 2026-10-10)"};
+  const S = window.gh3Song, cv = document.getElementById('hw'), stat = document.getElementById('songStat');
+  S.offsetMs = CLOCK.offsetMs;  // el reloj va adelantado respecto de la imagen/juicio del juego (medido en el nativo)
+  const syncKey = 'gh3-song-sync-v2';
+  try { const saved = localStorage.getItem(syncKey); if (saved !== null && Number.isFinite(Number(saved))) S.offsetMs = Math.max(-1500, Math.min(1500, Number(saved))); } catch {}
+  const syncInput = document.getElementById('songOff'); syncInput.value = S.offsetMs;
+  // La autopista va arriba de todo (antes quedaba debajo del registro) y se ocultan la prueba R3c y el registro largo.
+  const main = document.querySelector('main') || document.body;
+  const ctl = document.getElementById('dir').closest('.card') || main.children[1];
+  ctl.after(document.getElementById('songBox'));ctl.after(document.getElementById('r5Box'));document.getElementById('hw').hidden=true;
+  // Audio status next to the playable road, rather than below the long log.
+  const audioStatus = document.getElementById('r6Audio'), audioReset = document.getElementById('r6ResetAudio');
+  if (audioStatus) stat.after(audioStatus);
+  if (audioReset && audioStatus) audioStatus.after(audioReset);
+  document.getElementById('copySongAudio').onclick = async () => {
+    const text = JSON.stringify({ audio: window.d4?.r6Audio || null, clockMs: S.clock?.(), visualOffsetMs: S.offsetMs, song: S.chart?.name, browser: navigator.userAgent }, null, 2);
+    const output = document.getElementById('songAudioDiagnostic'); output.hidden = false; output.textContent = text;
+    try { await navigator.clipboard.writeText(text); } catch {}
+  };
+  for (const id of ['r3cBox']) { const el = document.getElementById(id); if (el) el.hidden = true; }
+  const logEl = document.getElementById('log'); if (logEl) logEl.style.maxHeight = '120px';
+  let t0 = null; document.getElementById('go').addEventListener('click', () => { t0 = performance.now(); });
+  // Pasos hasta la canción. Automático: se tilda cada paso cuando el juego recibe el botón ([g1e] press origin=schedule).
+  // Manual (?manual=1, sin botones automáticos): la lista indica qué tecla apretar en cada pantalla.
+  const STEPS = [[150,"start","Pantalla de título \"PRESS ANY BUTTON TO ROCK\""],[175,"start","Pantalla de controles \"In the event of rock\""],[196,"a","Menú principal → CAREER (Carrera)"],[204,"a","Nombre de la banda → escribe una letra"],[208,"start","Acepta el nombre de la banda"],[216,"a","Dificultad → MEDIUM (ya viene marcada)"],[224,"a","Elegir héroe → Axel Steel"],[232,"a","Menú del héroe → PLAY SHOW"],[240,"a","Saltea la película de la Carrera"],[248,"a","Cartel del lugar (Backyard Bash)"],[256,"a","Lista de canciones → SLOW RIDE (la primera)"],[264,"a","Presentación del lugar → empieza la canción"]], manual = new URLSearchParams(location.search).get('manual') === '1';
+  const KEYNAME = { start: 'Enter (START)', a: 'tecla 1 (botón A / verde)' };
+  let done = 0;
+  const renderSteps = () => {
+    document.getElementById('songSteps').innerHTML = STEPS.map(([t, b, what], k) => {
+      const mark = manual ? '' : k < done ? '✓ ' : k === done && t0 !== null ? '▶ ' : '';
+      const when = manual ? '' : ' <span style="opacity:.6">(~' + t + ' s)</span>';
+      return '<li style="' + (!manual && k < done ? 'opacity:.55' : !manual && k === done ? 'font-weight:600' : '') + '">' + mark + what + ' — <b>' + KEYNAME[b] + '</b>' + when + '</li>';
+    }).join('') + '<li>' + (done >= STEPS.length ? '▶ ' : '') + '<b>¡A tocar!</b> Las notas aparecen en la autopista.</li>';
+  };
+  document.getElementById('stepsTitle').textContent = manual ? 'Pasos hasta la canción (hacelos vos, sin imagen):' : 'Pasos hasta la canción (los hace el juego solo):';
+  document.getElementById('stepsMode').innerHTML = manual
+    ? 'Modo manual. Esperá ~2 min a la pantalla de título antes del primer Enter y dejá ~8 s entre pantallas (algunas cargan). <a href="/">Volver al modo automático</a>'
+    : 'Los botones van solos; no hace falta tocar nada hasta la canción. <a href="/?song=1&manual=1&cpwait=event&audio=silent&xma=decode&waitmulti=event&audiotap=1">Prefiero hacerlo yo (modo manual)</a>';
+  renderSteps();
+  S.waitText = () => {
+    if (t0 === null) return 'Prepará las canciones y tocá Jugar.';
+    if (manual) return 'Modo manual: seguí los pasos de la lista. Las notas aparecen cuando empieza la canción.';
+    const left = Math.max(0, Math.round(CLOCK.navEnd + 10 - (performance.now() - t0) / 1000));
+    return left > 0 ? 'Entrando solo a Slow Ride (paso ' + Math.min(done + 1, STEPS.length) + ' de ' + STEPS.length + '): faltan ~' + left + ' s' : 'Cargando la canción…';
+  };
+  setInterval(renderSteps, 1000);
+  // Botones rápidos. Cancelan el calendario (?press=) y aprietan en vivo, guiados por lo que abre el juego:
+  // gh.png = pasó la pantalla de título; GH3_Intro.bik = llegó al menú principal. Después del nombre de banda todas
+  // las pantallas hasta la canción se pasan con A, así que se repite A hasta que arranca el reloj de la canción.
+  const seen = window.navSeen = {};
+  let live = null, navBusy = false;
+  const BTN = { a: 0x1000, start: 0x0010 };
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const tap = async (b) => {
+    if (!live) return; const i32 = new Int32Array(live.sab, live.ptr, 11);
+    Atomics.or(i32, 10, BTN[b]); Atomics.store(i32, 1, BTN[b]); Atomics.add(i32, 0, 1);
+    await sleep(150); Atomics.store(i32, 1, 0); Atomics.add(i32, 0, 1);
+  };
+  const inSong = () => { const v = S.clock ? S.clock() : 0; return Number.isFinite(v) && v !== 0; };
+  const navStat = (t) => { document.getElementById('navStat').textContent = t; };
+  async function fastNav(mode) {
+    if (navBusy || !window.g1worker) return; navBusy = true;
+    document.getElementById('skipIntro').disabled = document.getElementById('goSong').disabled = true;
+    navStat('Esperando que cargue el juego…');
+    while (!live) await sleep(200);  // el juego ya arrancó (antes, llamar al wasm lo hace abortar)
+    window.g1worker.postMessage({ type: 'pressClear' });
+    const tStart = performance.now(), limit = (s) => performance.now() - tStart < s * 1000;
+    navStat('Salteando los videos del arranque…');
+    while (!seen.title && !seen.menu && limit(300)) { await tap('start'); await sleep(1000); }
+    done = Math.max(done, 1); navStat('Pantalla de controles…');
+    while (!seen.menu && limit(330)) { await tap('start'); await sleep(1500); }
+    done = Math.max(done, 2); navStat('Menú principal → Carrera…');
+    const gap = mode === 'song' ? 2500 : 5000;
+    await sleep(3000); await tap('a'); done = 3;          // CAREER
+    await sleep(gap); await tap('a'); done = 4;           // letra del nombre de banda
+    await sleep(1500); await tap('start'); done = 5;      // aceptar nombre
+    navStat('Dificultad, héroe, Play Show, lista → Slow Ride…');
+    while (!inSong() && limit(420)) { await sleep(gap); if (inSong()) break; await tap('a'); if (done < STEPS.length) done++; }
+    done = STEPS.length; renderSteps();
+    navStat(inSong() ? '¡Listo! Ya estás en la canción.' : 'No llegó a la canción: probá el modo manual o recargá.');
+    navBusy = false;
+  }
+  document.getElementById('skipIntro').onclick = () => fastNav('intro');
+  document.getElementById('goSong').onclick = () => fastNav('song');
+  document.getElementById('go').addEventListener('click', () => { document.getElementById('skipIntro').disabled = document.getElementById('goSong').disabled = false; });
+  let files = null, loading = null;
+  const W = window.Worker;
+  window.Worker = function (...a) {
+    const w = new W(...a); window.g1worker = w;
+    w.addEventListener('message', (e) => {
+      if (e.data?.type === 'g1Mem') S.attachClock(e.data.sab, e.data.seg, parseInt(CLOCK.addr, 16), CLOCK.kind);
+      if (e.data?.type === 'g1eInput') live = { sab: e.data.sab, ptr: e.data.ptr };
+      if (e.data?.type === 'log') {
+        const t = e.data.text;
+        if (/\[g1e\] press .*origin=schedule/.test(t)) { done++; renderSteps(); }
+        if (/memcard\\gh\.png/i.test(t)) seen.title = true;
+        if (/GH3_Intro\.bik/i.test(t)) seen.menu = true;
+      }
+    });
+    setInterval(() => w.postMessage({ type: 'memReq' }), 3000);  // la memoria crece: pedir la vista actual
+    return w;
+  };
+  document.getElementById('dir').addEventListener('change', (e) => { files = e.target.files; });
+  const setSync = (value) => {
+    if (!Number.isFinite(value)) return;
+    S.offsetMs = Math.max(-1500, Math.min(1500, value)); syncInput.value = S.offsetMs;
+    try { localStorage.setItem(syncKey, String(S.offsetMs)); } catch {}
+    syncInput.blur();
+  };
+  syncInput.addEventListener('change', (e) => setSync(Number(e.target.value)));
+  document.getElementById('notesLater').onclick = () => setSync(S.offsetMs - 20);
+  document.getElementById('notesEarlier').onclick = () => setSync(S.offsetMs + 20);
+  document.getElementById('syncReset').onclick = () => setSync(CLOCK.offsetMs);
+  // Detecta qué canción abre el juego (songs\<nombre>_song.pak.xen) y lee sus notas de la carpeta elegida.
+  setInterval(async () => {
+    if(window.gh3Loader?.loadChart)return;
+    if(!files) files=window.gh3LoaderFiles;
+    if (!files || loading || !window.d4) return;
+    const name = window.songPak;  // lo marca el manejador del registro (abajo)
+    if (!name || (S.chart && S.chart.name === name)) return;
+    loading = S.loadFromFiles(files, name, CLOCK.diff).then((c) => { stat.textContent = 'Canción: ' + name + ' (' + CLOCK.diff + '), ' + c.notes.length + ' notas.'; })
+      .catch((err) => { stat.textContent = 'No pude leer las notas: ' + err.message; }).finally(() => { loading = null; });
+  }, 1000);
+  // Modo canción: mientras el reloj de la canción corre (vale 0 en los menús), los trastes del teclado van al
+  // esquema de GH3 con mando común (gh3-input.js).
+  // Canción = reloj AVANZANDO (no solo distinto de 0): al terminar o pausar, el reloj queda quieto en su último valor
+  // y los menús (resultados, pausa) necesitan el esquema de menú (verde = A). Antes quedaba "en canción" para siempre.
+  if (window.gh3Input) { let lastV = 0, lastAt = 0; window.gh3Input.songMode = () => { const v = S.clock ? S.clock() : 0, now = performance.now(); if (!Number.isFinite(v) || v === 0) return false; if (v !== lastV) { lastV = v; lastAt = now; } return now - lastAt < 400; }; }
+  const loop = () => {};
+  loop();
+})();
+</script>
+<script type="module" src="r5snap-loader-ui.js"></script>
+</body>
+</html>

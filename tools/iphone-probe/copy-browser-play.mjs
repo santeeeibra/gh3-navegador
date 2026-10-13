@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {addAppIcon} from './app-icon.mjs';
 // Only the authorized one-song trial, never arbitrary game directories/artifacts.
 export async function copyBrowserPlay(destination='dist/gh3',{local=false,programOnly=false}={}){
  const available=await fs.access('artifacts/unified-game/build-result.json').then(()=>true,()=>false);
@@ -39,5 +40,6 @@ export async function copyBrowserPlay(destination='dist/gh3',{local=false,progra
  // Project-owned controls override the historical generated delivery.
  await fs.copyFile('src/original/gh3-touch.js',path.join(destination,'gh3-touch.js'));
  await fs.copyFile('src/original/gh3-diag.js',path.join(destination,'gh3-diag.js'));
+ await addAppIcon(destination);
  return files.length;
 }

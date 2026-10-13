@@ -16,3 +16,4 @@ obj/
 *.exe
 *.dll
 *.pdb
+tools/d1-wasm/tmp/

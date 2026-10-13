@@ -1,0 +1,46 @@
+Trabajá en una sesión REMOTA de Claude Code en la web sobre el repositorio
+santeeeibra/gh3-navegador, para que pueda apagar mi PC. No uses Remote Control
+ni una ejecución que dependa de mi equipo. Implementá en una rama y entregá PR
+con cambios y pruebas; no publiques el juego ni hagas merge automáticamente.
+
+Implementación aprobada:
+1. Controles móviles visibles antes de jugar: aviso de táctiles, prueba opcional
+de cinco colores sin cargar el juego ni enviar entradas, explicación corta de
+toques/sostenidas/acordes y rasgueo según ajuste. En canción, bordes tenues
+visibles y feedback inmediato, zonas alineadas a aros, márgenes/orientación,
+tamaño/posición/visibilidad persistentes. Preservar PC, menús, pausa y estelar.
+2. Gobernador adaptativo móvil: audio constante a ritmo original y controles/
+juicio fluidos son obligatorios. Sacrificar gráficos antes. Medir reserva y
+tendencia de audio, picos CPU/GPU, memoria y latencia. Recortar con rapidez y
+recuperar lentamente para evitar oscilaciones. No esconder sobrecarga
+ralentizando perceptiblemente la canción ni retrasando entradas.
+3. CPU: reducir copias, preparación y captura de escena antes de trabajos caros,
+con recursos inmutables, sin leer tarde memoria cambiante del juego. GPU:
+reducir escala de escena a540p/360p, sombras/reflejos/partículas; mantener pista/
+notas/colas/HUD legibles. Memoria: formatos comprimidos soportados realmente,
+recursos reutilizados y presupuestos, sin conversiones pesadas durante canción.
+4. Preparar música disponible, shaders y texturas fuera del tramo de juego;
+decodificación adelantada acotada, no toda la canción PCM en RAM. En emergencia
+dejar sólo pista/notas/colas/HUD. Un promedio visual60 con interpolación no
+certifica ritmo de simulación ni respuesta jugable.
+
+Verificá cancelación/pérdida de foco, multitouch, sostenidas, ajustes y PC;
+gobernador CPU/GPU/memoria y recuperación estable; continuidad del audio desde
+arranque, sincronía y latencia. Cualquier underrun/skips de sonido esperado hace
+fallar validación. Distinguir pruebas de módulos/fixtures del juego entero.
+
+IMPORTANTE: la nube sólo tiene código sincronizado en GitHub. En la PC hay
+trabajo nuevo native60, escena móvil y evidencias dentro de artifacts ignorado,
+además de fuentes sin confirmar; no asumir que esos archivos o D: existen
+en la nube. Primero inspeccioná disponibilidad. Si faltan motor/assets necesarios,
+implementá y probá las partes disponibles y dejá explícita la validación de GH3
+real pendiente; no inventes mediciones ni descargues/subas recursos comerciales.
+
+Referencia histórica medida en PC (no iPhone): pista SlowRide/TalkDirty completos
+~58,7fps y0cortes registrados; escena parcial SlowRide~58,9fps con1underrun
+antes de primera muestra. Preparación de escena~29ms/snapshot. Bajar resolución
+no resuelve ese cuello CPU. Fidelidad original de sombras/EDRAM aún pendiente.
+Estos números son contexto, no resultados de tu rama nueva.
+
+No apagar ninguna máquina desde esta tarea. Entregá lo implementado, pruebas,
+fallos y pendientes. La prueba física de iPhone11 queda pendiente si no disponible.

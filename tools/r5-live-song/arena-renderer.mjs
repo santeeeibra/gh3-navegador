@@ -17,7 +17,7 @@ export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t
    p.cacheId=++stats.pipelineBuilds;return p;
   })().catch(e=>{stats.rejectedPipelines[key]=e.message;return null;});pipelines.set(key,promise);return promise;
  }
- function texture(t){let gpu=textures.get(t.key);if(!gpu){const u=prepareTexture(t);gpu=device.createTexture({size:[u.width,u.height],format:u.format,usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});device.queue.writeTexture({texture:gpu},u.data,{bytesPerRow:u.bytesPerRow,rowsPerImage:u.rowsPerImage},[u.width,u.height]);gpu.view=gpu.createView({dimension:'2d-array'});textures.set(t.key,gpu);gpu.cacheId=++stats.textureUploads;}gpu.used=frame;return gpu;}
+ function texture(t){let gpu=textures.get(t.key);if(!gpu){const u=prepareTexture(t);gpu=device.createTexture({size:[u.width,u.height],format:u.format,usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});device.queue.writeTexture({texture:gpu},u.data,{bytesPerRow:u.bytesPerRow,rowsPerImage:u.rowsPerImage},[u.width,u.height]);gpu.view=gpu.createView({dimension:'2d-array'});textures.set(t.key,gpu);gpu.cacheId=++stats.textureUploads;}else if(t.video&&gpu.used!==frame){const u=prepareTexture(t);device.queue.writeTexture({texture:gpu},u.data,{bytesPerRow:u.bytesPerRow,rowsPerImage:u.rowsPerImage},[u.width,u.height]);}gpu.used=frame;return gpu;}
  function prepareArenas(inputs){
   let changed=false;
   for(const [i,input] of inputs.entries()){
