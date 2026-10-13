@@ -24,8 +24,25 @@ traspaso: leerlo primero, junto con `REGLAS.md` y
 - Santi pidió publicar en main para probar en el celu: NO se hizo, porque
   Vercel arma `/gh3` sólo con los datos del juego (no están en GitHub) y
   `web/gh3-native60` no entra en el build; no cambiaba nada en el celu.
-- Próximo: esperar los `comparacion.md` de Santi (pista y escena) y calibrar.
-  Después, si da el OK, el paso 2 (precarga con presupuesto).
+- Paso 2 (precarga con presupuesto) HECHO con OK de Santi:
+  - `CTRL.STAGE` (26): la página (gh3-governor.js) escribe 1 = cargas/menús,
+    2 = canción (`gh3stage` songPlaying). Contadores PRELOADED/PRELOAD_PENDING/
+    SONG_BUILDS (27–29); el resumen del gobernador trae `medidas.precarga`.
+  - `tools/r5-native60/preload.mjs`: recuerda pipelines en IndexedDB del worker
+    GPU y los compila sólo con STAGE = 1 y LEVEL = 0, de a 2. En canción no
+    compila por su cuenta ni guarda. renderer: onPipeline/has/prebuild.
+  - En canción las texturas no se tiran por tiempo (sólo por presupuesto),
+    GPU y copias del worker (`keepTextures`).
+  - NO se precargan texturas: el juego las manda recién al dibujarlas; haría
+    falta tocar el runtime (`gh3-web.js`, no está en el repo).
+  - Medir: `measure-gov.mjs --precarga` (dos corridas con el mismo perfil,
+    `GH3_PROFILE` en run-song.mjs).
+  - Pruebas: `npm test` 72/72, `test:movil-gobernador` 34/34 (parte C: dos
+    sesiones con WebGPU), `test:movil-tactil` 74/74.
+- Para Santi en casa: `docs/nube/MEDIR-GOBERNADOR-EN-PC.md` (pasos) y
+  `docs/nube/PROMPTS-CASA.md` (prompt para Claude Code si aprueba o no).
+- Próximo: esperar sus tres `comparacion.md` (pista, escena, precarga) y el
+  informe del celu; calibrar umbrales con esos datos.
 
 ## Cómo trabajar en la nube (aprendido)
 

@@ -59,11 +59,26 @@ node tools/r5-native60/measure-gov.mjs slowride --full --escena
   - Si aparece **FALLA** o **Avisos**, el comando termina con error: no es
     que se rompió la PC, es que hay algo para mirar.
 
+### 4b. Medir la precarga (después de las dos anteriores)
+
+```powershell
+node tools/r5-native60/measure-gov.mjs slowride --full --escena --precarga
+```
+
+- Corre la canción dos veces **con el mismo navegador**: en la primera no hay
+  nada recordado; en la segunda ya debería preparar todo durante la carga.
+- Lo importante en la tabla: **«Pipelines compilados con la canción en
+  juego»** tiene que bajar en la segunda (ideal: 0), y el audio seguir en 0
+  cortes y 0 saltos.
+- La segunda carga también va más rápido porque el juego queda en caché: eso
+  es normal y no es mérito de la precarga.
+
 ## 5. Pasarme el resultado
 
-Cada medición deja una carpeta `artifacts/r5-native60/runs/gov-slowride-...`.
+Cada medición deja una carpeta `artifacts/r5-native60/runs/gov-slowride-...`
+(la de precarga: `precarga-slowride-...`).
 Abrí el archivo `comparacion.md` de cada una y pegame el contenido en el chat
-(son dos: pista y escena). Con eso calibro los umbrales.
+(son tres: pista, escena y precarga). Con eso calibro los umbrales.
 
 Si algo falla antes de la tabla, pegame las últimas ~20 líneas de la consola.
 
@@ -76,6 +91,20 @@ Cuando la PC dé bien, pedime publicarlo para el celu y lo hacemos juntos
 
 En el celu, después de jugar: diagnóstico → **Copiar informe** y pegármelo.
 Probar: una canción completa, navegar menús, y si se puede 15 min seguidos.
+Para la precarga: jugar una canción, **cerrar y volver a abrir** la página y
+jugar otra. En el segundo informe, `precarga.compiladasEnJuego` debería ser
+0 o casi, y `precarga.hechas` mayor que 0.
+
+## 7. ¿Aprobado o no?
+
+**Aprobado** si en todas las mediciones:
+- cortes y saltos de audio = 0 (con el gobernador activo y con la precarga);
+- los controles no respondieron peor (la tabla no dice «respondieron peor»);
+- la imagen no se ve peor de lo que esperás (en el celu, a ojo);
+- la segunda corrida de precarga compiló menos en juego que la primera.
+
+Después abrí Claude Code en la PC y pegá el prompt que corresponda de
+`docs/nube/PROMPTS-CASA.md` (uno para aprobado, otro para no aprobado).
 
 ## Si querés volver atrás
 
