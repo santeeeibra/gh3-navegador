@@ -71,8 +71,9 @@ const FAKE = `import fs from 'node:fs';import path from 'node:path';
 const q=new URLSearchParams(process.env.GH3_QUERY),gov=q.get('gov'),out=path.join(process.env.FAKE_DIR,process.env.HW60_LABEL);
 fs.appendFileSync(path.join(process.env.FAKE_DIR,'orden.txt'),gov+' '+process.argv.slice(2).join(' ')+'\\n');
 if(process.env.FAKE_FAIL===gov){console.log('Turno ocupado');process.exit(1);}
-fs.mkdirSync(out,{recursive:true});
-fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({...JSON.parse(process.env.FAKE_RUN),query:process.env.GH3_QUERY,governor:{...JSON.parse(process.env.FAKE_RUN).governor,modo:gov==='1'?'activo':gov}}));
+fs.mkdirSync(out,{recursive:true});const R=JSON.parse(process.env.FAKE_RUN),P=process.env.GH3_PROFILE;
+let precarga=null;if(P){const again=fs.existsSync(path.join(P,'marca'));fs.mkdirSync(P,{recursive:true});fs.writeFileSync(path.join(P,'marca'),'1');fs.appendFileSync(path.join(process.env.FAKE_DIR,'perfiles.txt'),P+'\\n');precarga=again?{hechas:3,pendientes:0,compiladasEnJuego:0}:{hechas:0,pendientes:0,compiladasEnJuego:3};}
+fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({...R,query:process.env.GH3_QUERY,governor:{...R.governor,modo:gov==='1'?'activo':gov,medidas:{...R.governor.medidas,precarga}}}));
 console.log('etapa songPlaying');console.log(JSON.stringify({out,song:process.argv[2],ok:true}));`;
 
 function measure(extra = {}, args = ['talkdirtytome', '--full']) {
@@ -109,5 +110,20 @@ test('medir: si la primera corrida no guarda nada, no corre la segunda', () => {
   const r = measure({FAKE_FAIL: 'observa'});
   assert.equal(r.code, 1);
   assert.deepEqual(r.orden, ['observa talkdirtytome --wait --full']);
+  fs.rmSync(r.dir, {recursive: true, force: true});
+});
+
+test('medir --precarga: dos corridas sólo mirando con el MISMO perfil, compara compilaciones en juego y borra el perfil', () => {
+  const r = measure({}, ['slowride', '--precarga']);
+  assert.equal(r.code, 0, r.stdout);
+  assert.deepEqual(r.orden, ['observa slowride --wait', 'observa slowride --wait']);
+  const perfiles = fs.readFileSync(path.join(r.dir, 'perfiles.txt'), 'utf8').trim().split('\n');
+  assert.equal(perfiles.length, 2); assert.equal(perfiles[0], perfiles[1]);
+  assert.equal(fs.existsSync(perfiles[0]), false);
+  const c = JSON.parse(fs.readFileSync(path.join(r.dir, 'cmp', 'comparacion.json')));
+  assert.deepEqual(c.avisos, []);
+  assert.ok(c.conclusiones.some((x) => x.includes('3 en la primera, 0 en la segunda (precompilados en la segunda: 3)')));
+  assert.match(r.stdout, /Precarga: primera vs segunda corrida[\s\S]*\| Medida \| Primera \| Segunda/);
+  assert.match(r.stdout, /\| Pipelines compilados con la canción en juego \| 3 \| 0 \|/);
   fs.rmSync(r.dir, {recursive: true, force: true});
 });

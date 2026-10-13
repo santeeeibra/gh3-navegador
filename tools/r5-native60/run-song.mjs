@@ -21,7 +21,7 @@ const root=path.resolve('artifacts/unified-game'),out=path.resolve('artifacts/r5
 const turn='artifacts/PRUEBAS-EN-CURSO.md',token=`claude-demand-${process.pid}-${crypto.randomBytes(6).toString('hex')}`;
 const operator=process.env.GH3_TEST_OWNER||'Codex (WebGPU original 60)';
 const nap=ms=>new Promise(r=>setTimeout(r,ms));let reserved=false,server,browser;
-const report={song,full,quick,withoutPrepare:true,profileInitiallyEmpty:true,latMs:LAT,bwKBps:BW,networkRequests:[],stageEvents:[],cacheEvents:[],started:new Date().toISOString(),pageErrors:[],steps:[],samples:[]};
+const report={song,full,quick,withoutPrepare:true,profileInitiallyEmpty:!process.env.GH3_PROFILE,latMs:LAT,bwKBps:BW,networkRequests:[],stageEvents:[],cacheEvents:[],started:new Date().toISOString(),pageErrors:[],steps:[],samples:[]};
 if(fs.existsSync('artifacts/r5-native60/build.json'))report.nativeBuild=JSON.parse(fs.readFileSync('artifacts/r5-native60/build.json'));
 const write=()=>fs.writeFileSync(out+'/verification.json',JSON.stringify(report,null,2));
 const ownTurn=()=>fs.readFileSync(turn,'utf8').includes('Reserva: '+token);
@@ -40,7 +40,8 @@ try{
  report.notes=chart.notes.length;report.lastNoteMs=chart.notes.at(-1).t+chart.notes.at(-1).len;
  const byHash=new Map(m.files.flatMap(f=>f.chunks.map(c=>[c.hash,f.path])));
  server=createDemandServer({root:process.env.DEMO_ROOT?path.resolve(process.env.DEMO_ROOT):root+'/demo',staticNames:[...delivery.staticNames,...(process.env.EXTRA_STATIC||'').split(',').filter(Boolean)],latencyMs:LAT,bandwidthKBps:BW,onChunk:r=>report.networkRequests.push({...r,path:byHash.get(r.hash),stage:report.stageEvents.at(-1)?.stage})});await new Promise(r=>server.listen(0,'127.0.0.1',r));
- browser=await chromium.launchPersistentContext(out+'/edge-profile',{channel:'msedge',headless:true,viewport:{width:1280,height:900},args:process.env.CPU_PROF?['--remote-debugging-port=9333']:[]});
+ // Claude 2026-10-13: GH3_PROFILE=<carpeta> reusa un perfil entre corridas (precarga: lo recordado en la primera sirve en la segunda); no se borra.
+ browser=await chromium.launchPersistentContext(process.env.GH3_PROFILE?path.resolve(process.env.GH3_PROFILE):out+'/edge-profile',{channel:'msedge',headless:true,viewport:{width:1280,height:900},args:process.env.CPU_PROF?['--remote-debugging-port=9333']:[]});
  const page=browser.pages()[0];page.on('pageerror',e=>report.pageErrors.push(e.message));
  await page.addInitScript(()=>{window.nativeAudioEvents=[];let last='';setInterval(()=>{const a=window.d4?.r6Audio;if(!a)return;const k=[a.underruns,a.silentBlocks,a.skips].join('/');if(k===last)return;last=k;window.nativeAudioEvents.push({t:performance.now(),song:window.songPak,clock:window.gh3Song?.clock?.(),underruns:a.underruns,silentBlocks:a.silentBlocks,skips:a.skips});},100);});
  report.openedFiles=[];

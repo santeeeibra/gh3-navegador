@@ -33,16 +33,19 @@ export function summarizeRun(report){
   controles:{p50Ms:m.latenciaJuego?.p50Ms??null,p95Ms:m.latenciaJuego?.p95Ms??null,maxMs:m.latenciaJuego?.maxMs??null,toqueMaxMs:m.demoraToque?.maxMs??null},
   gobernador:g?{estadoFinal:g.estado,decisionFinal:g.decision?.estado??null,segundosEnEstado:g.segundosEnEstado||null,transiciones:g.transiciones?.length??0,
    colchonMinMs:m.colchonMinMs??null,produccionAudio:m.produccionAudio??null,gpuMs:m.gpuMs??null,preparacionMs:m.preparacionMs??null}:null,
+  precarga:m.precarga??null,  // pipelines precompilados fuera del juego / compilados en juego (preload.mjs)
   segundosMedidos:steady?.segundos??song?.segundos??null,
  };
 }
 
 // Compara: el gobernador activo sirve si no empeora el audio ni los controles. Los cortes/saltos son falla en cualquiera de las dos.
-export function compareRuns(observaReport,activoReport){
+// precarga=true: las dos corridas con el mismo modo y el mismo perfil (measure-gov.mjs --precarga): primera vs segunda.
+export function compareRuns(observaReport,activoReport,{precarga=false}={}){
  const o=summarizeRun(observaReport),a=summarizeRun(activoReport),avisos=[],conclusiones=[];
+ const names=precarga?['primera','segunda']:['observa','activo'],modes=precarga?[o.modo,o.modo]:['observa','activo'];
  if(o.tema&&a.tema&&o.tema!==a.tema)avisos.push(`Temas distintos (${o.tema} vs ${a.tema}): la comparación no vale.`);
  if(o.completa!==a.completa)avisos.push('Una corrida es completa y la otra no.');
- for(const [k,r,want] of [['observa',o,'observa'],['activo',a,'activo']]){
+ for(const [k,r,want] of [[names[0],o,modes[0]],[names[1],a,modes[1]]]){
   if(r.ok===false)avisos.push(`La corrida ${k} falló: ${r.error||'sin detalle'}.`);
   if(!r.gobernador)avisos.push(`La corrida ${k} no tiene el resumen del gobernador.`);
   else if(r.modo!==want)avisos.push(`La corrida ${k} corrió con el gobernador en modo «${r.modo}».`);
@@ -51,26 +54,33 @@ export function compareRuns(observaReport,activoReport){
  const diff=(x,y,d=1)=>x==null||y==null?null:round(y-x,d);
  const cambios={cortes:diff(o.audio.cortes,a.audio.cortes,0),saltos:diff(o.audio.saltos,a.audio.saltos,0),bloquesEstirados:diff(o.audio.bloquesEstirados,a.audio.bloquesEstirados,0),
   fpsPresentados:diff(o.imagen.fpsPresentados,a.imagen.fpsPresentados),fpsJuego:diff(o.imagen.fpsJuego,a.imagen.fpsJuego),controlesP95Ms:diff(o.controles.p95Ms,a.controles.p95Ms)};
- if(cambios.cortes>0||cambios.saltos>0)conclusiones.push('El gobernador activo tuvo MÁS cortes o saltos de audio que sólo mirando.');
+ if(precarga){
+  const p1=o.precarga,p2=a.precarga;
+  if(!p1||!p2)avisos.push('Falta el dato de precarga (¿worker GPU sin aplicar?).');
+  else conclusiones.push(`Pipelines compilados con la canción en juego: ${p1.compiladasEnJuego} en la primera, ${p2.compiladasEnJuego} en la segunda (precompilados en la segunda: ${p2.hechas}).`);
+  if(p1&&p2&&p2.compiladasEnJuego>0&&p2.compiladasEnJuego>=p1.compiladasEnJuego)conclusiones.push('La precarga no redujo las compilaciones en juego.');
+  if(cambios.cortes>0||cambios.saltos>0)conclusiones.push('La segunda corrida tuvo MÁS cortes o saltos de audio.');
+ }else if(cambios.cortes>0||cambios.saltos>0)conclusiones.push('El gobernador activo tuvo MÁS cortes o saltos de audio que sólo mirando.');
  else if(cambios.cortes<0||cambios.saltos<0)conclusiones.push('El gobernador activo tuvo menos cortes o saltos de audio.');
- if(cambios.bloquesEstirados>0)conclusiones.push('Con el gobernador activo el audio se estiró más veces.');
- if(cambios.controlesP95Ms>8)conclusiones.push('Los controles respondieron peor con el gobernador activo (p95 más de 8 ms arriba).');
- const ob=o.gobernador?.segundosEnEstado;
+ const who=precarga?'la segunda corrida':'el gobernador activo';
+ if(cambios.bloquesEstirados>0)conclusiones.push(`Con ${who} el audio se estiró más veces.`);
+ if(cambios.controlesP95Ms>8)conclusiones.push(`Los controles respondieron peor con ${who} (p95 más de 8 ms arriba).`);
+ const ob=precarga?null:o.gobernador?.segundosEnEstado;
  if(ob&&(ob.protegido>0||ob.minimo>0))conclusiones.push(`Sólo mirando, el gobernador habría recortado ${round((ob.protegido||0)+(ob.minimo||0))} s (protegido ${ob.protegido} s, mínimo ${ob.minimo} s).`);
  else if(ob)conclusiones.push('Sólo mirando, el gobernador no habría recortado nunca.');
  if(!conclusiones.some(c=>c.startsWith('FALLA'))&&o.audio.falla===false&&a.audio.falla===false)conclusiones.push('Audio sin cortes ni saltos en las dos corridas.');
- return {observa:o,activo:a,cambios,avisos,conclusiones};
+ return {observa:o,activo:a,cambios,avisos,conclusiones,precarga};
 }
 
 const cell=v=>v==null?'—':typeof v==='boolean'?(v?'sí':'no'):String(v);
-export function toMarkdown(c){
+export function toMarkdown(c,{title=`Gobernador: sólo mirando vs activo (${c.observa.tema||'?'})`,columns=['Sólo mirando','Activo'],note='«Sólo mirando» no cambia nada: sus segundos en protegido/mínimo son lo que el gobernador *habría* hecho.'}={}){
  const {observa:o,activo:a}=c,row=(label,x,y,d)=>`| ${label} | ${cell(x)} | ${cell(y)} | ${cell(d)} |`;
  const st=(r,k)=>r.gobernador?.segundosEnEstado?.[k];
  return [
-  `# Gobernador: sólo mirando vs activo (${o.tema||'?'})`,'',
+  `# ${title}`,'',
   ...(c.avisos.length?['**Avisos**','',...c.avisos.map(x=>'- '+x),'']:[]),
   '**Conclusiones**','',...c.conclusiones.map(x=>'- '+x),'',
-  '| Medida | Sólo mirando | Activo | Diferencia |','|---|---|---|---|',
+  `| Medida | ${columns[0]} | ${columns[1]} | Diferencia |`,'|---|---|---|---|',
   row('Corrida terminó bien',o.ok,a.ok),
   row('Cortes de audio (desde antes de Jugar)',o.audio.cortes,a.audio.cortes,c.cambios.cortes),
   row('Saltos de audio',o.audio.saltos,a.audio.saltos,c.cambios.saltos),
@@ -85,8 +95,10 @@ export function toMarkdown(c){
   row('Segundos en mínimo',st(o,'minimo'),st(a,'minimo')),
   row('Cambios de estado',o.gobernador?.transiciones,a.gobernador?.transiciones),
   row('Colchón de audio mínimo (ms)',o.gobernador?.colchonMinMs,a.gobernador?.colchonMinMs),
+  row('Pipelines precompilados en cargas/menús',o.precarga?.hechas,a.precarga?.hechas),
+  row('Pipelines compilados con la canción en juego',o.precarga?.compiladasEnJuego,a.precarga?.compiladasEnJuego),
   row('Segundos medidos',o.segundosMedidos,a.segundosMedidos),
-  '','«Sólo mirando» no cambia nada: sus segundos en protegido/mínimo son lo que el gobernador *habría* hecho.',''].join('\n');
+  '',note,''].join('\n');
 }
 
 if(import.meta.url===pathToFileURL(process.argv[1]||'').href){
