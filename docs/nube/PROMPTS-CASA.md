@@ -87,3 +87,35 @@ Qué quiero, de a un paso y explicándome en simple (no soy programador):
    git revert). Esperá mi OK antes de cambiar código.
 5. Al final actualizá el checkpoint con lo que encontraste.
 ```
+
+---
+
+## Subir a main y probar en el celu (sesión local manejada desde el celu)
+
+```text
+Leé REGLAS.md, docs/nube/CHECKPOINT-CLAUDE-2026-10-13-MOVIL.md,
+docs/nube/RESULTADO-MOVIL-TACTIL-GOBERNADOR.md y docs/nube/MEDIR-GOBERNADOR-EN-PC.md.
+Te manejo desde el celular: no puedo tocar la PC. Explicame en simple y corto
+(no soy programador).
+
+Quiero subir a main lo de la rama movil-tactil-gobernador (PR
+https://github.com/santeeeibra/gh3-navegador/pull/1) y probarlo en el celu.
+Todavía no medí en la PC; lo acepto así.
+
+1. git fetch origin, git checkout movil-tactil-gobernador, git pull, npm ci.
+2. Corré npm test, npm run test:movil-tactil y npm run test:movil-gobernador.
+   Si algo falla, pará y contame.
+3. Aplicá a la copia del juego, en este orden: node tools/r5-native60/build.mjs
+   y después node tools/r5-native60/apply-web.mjs. Si dice que falta el
+   runtime, pará y contame.
+4. Te autorizo a mergear el PR 1 a main y hacer push a main.
+5. Publicación para el celu: buscá cómo se publicó la versión móvil anterior
+   (docs/nube/CHECKPOINT-CLAUDE-2026-10-12-OPTIM.md, artifacts/privado/deploy-movil,
+   .vercel). Decime en 3 líneas qué vas a publicar y dónde, y esperá mi OK.
+6. Con mi OK publicá y pasame el link y una lista corta de qué probar
+   (controles táctiles, una canción completa, cerrar y volver a abrir para la
+   precarga) y cómo copiar el informe del diagnóstico para pegártelo.
+7. No corras las mediciones largas de la PC ahora. Si alguna vez corrés el
+   juego, respetá el turno de artifacts/PRUEBAS-EN-CURSO.md.
+8. Al final actualizá el checkpoint con lo hecho.
+```
