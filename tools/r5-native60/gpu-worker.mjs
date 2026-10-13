@@ -4,7 +4,8 @@ import {nextDeadline} from './cadence.mjs';
 import {sceneTexture} from '../r5-scene-mobile/src/texture-policy.mjs';
 import {C,ewmaStore,maxStore} from './control.mjs';
 import {knob,rendererConfig} from './governor-policy.mjs';
-let renderer,canvas,context,device,port,latch,transport,shaders,sceneMotion=false,queued=null,current=null,temporal=null,known=new Map(),running=false,timer,nextAt=0,lastReport=0,sourceSerial=0;
+import {createPreloader,idbStore} from './preload.mjs';
+let preloader=null,renderer,canvas,context,device,port,latch,transport,shaders,sceneMotion=false,queued=null,current=null,temporal=null,known=new Map(),running=false,timer,nextAt=0,lastReport=0,sourceSerial=0;
 const state={rendered:0,snapshots:0,stale:0,coalesced:0,textureCPUBytes:0,targetHz:60,maxGPUFramesInFlight:1,directPort:true,originalShaders:true};
 // latch = tablero compartido (control.mjs). Un consumidor viejo manda 8 bytes: sin telemetría ni gobernador.
 const board=()=>latch&&latch.length>C.WORKER_US?latch:null;
@@ -25,7 +26,9 @@ onmessage=async({data:m})=>{
    // Formatos comprimidos que el adaptador soporta de verdad (para medir en el iPhone; ASTC/ETC2 todavía no se usan).
    state.compression=['texture-compression-bc','texture-compression-etc2','texture-compression-astc'].filter(f=>adapter.features.has(f));device=await adapter.requestDevice({requiredFeatures:bc?['texture-compression-bc']:[]});
    device.addEventListener('uncapturederror',e=>stop(e.error));device.lost.then(e=>stop(Error('GPU lost: '+e.message)));
-   renderer=await createLiveSongRenderer(device,shaders,{prepareTexture:t=>sceneTexture(t,bc)});
+   renderer=await createLiveSongRenderer(device,shaders,{prepareTexture:t=>sceneTexture(t,bc),onPipeline:(m,pre)=>preloader?.record(m,pre)});
+   // Precarga de pipelines recordados, sólo en cargas/menús (preload.mjs). Tablero viejo sin etapa: sólo anota.
+   preloader=createPreloader({renderer,store:idbStore(),board:latch.length>C.SONG_BUILDS?latch:null});setInterval(()=>preloader.pump(),100);
    canvas=new OffscreenCanvas(1280,720);context=canvas.getContext('webgpu');context.configure({device,format:'rgba8unorm',usage:GPUTextureUsage.COPY_DST|GPUTextureUsage.RENDER_ATTACHMENT,alphaMode:'opaque'});
    port.onmessage=()=>{};port.start();postMessage({type:'ready'});return;
   }

@@ -1,7 +1,7 @@
 // Persistent WebGPU resources and one command submission per original frame.
 const factors={0:'zero',1:'one',4:'src',5:'one-minus-src',6:'src-alpha',7:'one-minus-src-alpha',8:'dst',9:'one-minus-dst',10:'dst-alpha',11:'one-minus-dst-alpha',12:'constant',13:'one-minus-constant',14:'src-alpha-saturated'};
 const ops=['add','subtract','min','max','reverse-subtract'],compares=['never','less','equal','less-equal','greater','not-equal','greater-equal','always'],stencilOps=['keep','zero','replace','increment-clamp','decrement-clamp','invert','increment-wrap','decrement-wrap'];
-export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t}={}){
+export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t,onPipeline=null}={}){
  const modules={},bindings={},pipelines=new Map(),slots=[],arenas={},textures=new Map(),samplers=new Map(),packed={};let frame=0,generation=0,cacheInputs=null,cacheReady=null,cacheRejected=null;
  const stats={frames:0,draws:0,pipelineBuilds:0,bufferBuilds:0,textureUploads:0,readbacks:0,rejectedPipelines:{}};
  function useShader(id){if(modules[id])return;const s=shaders[id];if(!s)throw Error("Shader missing "+id);stats.shaderBuilds=(stats.shaderBuilds||0)+1;modules[id]=device.createShaderModule({label:id,code:s.code});bindings[id]=[...s.code.matchAll(/@group\((\d+)\)\s*@binding\((\d+)\)\s*var(?:<[^>]*>)?\s+(\w+)\s*:\s*([^;]+);/g)].filter(m=>s.code.split(m[3]).length>2).map(m=>({group:+m[1],binding:+m[2],name:m[3],type:m[4]}));}
@@ -10,7 +10,7 @@ export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t
  // dejen rastro en notas rápidas. Presupuesto de texturas inactivas configurable. Bajo presión no se convierten ni
  // suben texturas NUEVAS de dibujos de escena no esenciales (manifest.essential = pista/notas/colas/HUD): ese dibujo
  // se omite hasta que pase la presión; lo esencial nunca se omite por esto.
- const options=globalThis.__r5Options||{},cfg={scale:[0.5,0.75].includes(options.renderScale)?options.renderScale:1,gpuTextureBytes:67108864,deferSceneUploads:false};
+ const options=globalThis.__r5Options||{},cfg={scale:[0.5,0.75].includes(options.renderScale)?options.renderScale:1,gpuTextureBytes:67108864,deferSceneUploads:false,keepTextures:false};
  let scale=cfg.scale,renderWidth=1280,renderHeight=720,target=null,depth=null,upscalePipeline=null,upscaleGroup=null,upscaleSampler=null,upscaleReady=null;
  function upscale(){return upscaleReady??=(async()=>{
   const module=device.createShaderModule({label:'scene-upscale',code:`
@@ -39,6 +39,7 @@ export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t
  function configure(next={}){
   if(next.gpuTextureBytes>0)cfg.gpuTextureBytes=next.gpuTextureBytes;
   if('deferSceneUploads' in next)cfg.deferSceneUploads=!!next.deferSceneUploads;
+  if('keepTextures' in next)cfg.keepTextures=!!next.keepTextures;
   if([0.5,0.75,1].includes(next.scale))cfg.scale=next.scale;
   if(cfg.scale===scale)return;
   if(cfg.scale!==1&&!upscalePipeline){if(!stats.upscaleError)upscale().catch(e=>{stats.upscaleError=String(e?.message||e);});return;}
@@ -46,16 +47,18 @@ export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t
  }
  const scaledScissor=s=>{const x=Math.floor(s[0]*scale),y=Math.floor(s[1]*scale);return [x,y,Math.min(renderWidth,Math.ceil((s[0]+s[2])*scale))-x,Math.min(renderHeight,Math.ceil((s[1]+s[3])*scale))-y];};
 
- function pipeline(m){
+ // Claude 2026-10-13 (precarga): onPipeline(m, preload) avisa cada pipeline compilado; prebuild() lo usa preload.mjs.
+ const pipelineKey=m=>JSON.stringify([m.vs,m.ps,m.blend,m.raster&7,m.depth,m.stencil>>>8,m.writeMask]);
+ function pipeline(m,preload=false){
   useShader(m.vs);useShader(m.ps);
-  const key=JSON.stringify([m.vs,m.ps,m.blend,m.raster&7,m.depth,m.stencil>>>8,m.writeMask]);if(pipelines.has(key))return pipelines.get(key);
+  const key=pipelineKey(m);if(pipelines.has(key))return pipelines.get(key);
   const promise=(async()=>{
    const b=m.blend,d=m.depth,st=m.stencil,blend={color:{srcFactor:factors[b&31],dstFactor:factors[b>>>8&31],operation:ops[b>>>5&7]},alpha:{srcFactor:factors[b>>>16&31],dstFactor:factors[b>>>24&31],operation:ops[b>>>21&7]}};
    if(Object.values(blend.color).includes(undefined)||Object.values(blend.alpha).includes(undefined))throw Error('Blend unsupported');
    for(const part of [blend.color,blend.alpha])if(part.operation==='min'||part.operation==='max')part.srcFactor=part.dstFactor='one';
    const front=d&1?{compare:compares[d>>>8&7],failOp:stencilOps[d>>>11&7],passOp:stencilOps[d>>>14&7],depthFailOp:stencilOps[d>>>17&7]}:{compare:'always'};
    const p=await device.createRenderPipelineAsync({label:m.vs+'/'+m.ps,layout:'auto',vertex:{module:modules[m.vs],entryPoint:'main'},fragment:{module:modules[m.ps],entryPoint:'main',targets:[{format:'rgba8unorm',blend,writeMask:m.writeMask}]},primitive:{topology:'triangle-list',frontFace:m.raster&4?'cw':'ccw',cullMode:(m.raster&3)===2?'back':(m.raster&3)===1?'front':'none'},depthStencil:{format:'depth24plus-stencil8',depthWriteEnabled:!!(d&4),depthCompare:d&2?compares[d>>>4&7]:'always',stencilFront:front,stencilBack:front,stencilReadMask:st>>>8&255,stencilWriteMask:st>>>16&255}});
-   p.cacheId=++stats.pipelineBuilds;return p;
+   p.cacheId=++stats.pipelineBuilds;if(preload)stats.preloadBuilds=(stats.preloadBuilds||0)+1;try{onPipeline?.(m,preload);}catch{}return p;
   })().catch(e=>{stats.rejectedPipelines[key]=e.message;return null;});pipelines.set(key,promise);return promise;
  }
  function texture(t,defer=false){let gpu=textures.get(t.key);if(!gpu&&defer&&t.scene&&!t.video){stats.sceneDeferred=(stats.sceneDeferred||0)+1;throw Error('Scene upload deferred');}if(!gpu){const u=prepareTexture(t);gpu=device.createTexture({size:[u.width,u.height,u.layers||1],format:u.format,usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});device.queue.writeTexture({texture:gpu},u.data,{bytesPerRow:u.bytesPerRow,rowsPerImage:u.rowsPerImage},[u.width,u.height,u.layers||1]);gpu.view=gpu.createView({dimension:u.cube?'cube':'2d-array'});textures.set(t.key,gpu);gpu.cacheId=++stats.textureUploads;gpu.revision=t.revision;gpu.byteSize=u.data.byteLength;stats.residentTextureBytes=(stats.residentTextureBytes||0)+gpu.byteSize;}else if((t.video||t.revision!==gpu.revision)&&gpu.used!==frame){if(defer&&t.scene){stats.sceneDeferred=(stats.sceneDeferred||0)+1;gpu.used=frame;return gpu;}const u=prepareTexture(t);device.queue.writeTexture({texture:gpu},u.data,{bytesPerRow:u.bytesPerRow,rowsPerImage:u.rowsPerImage},[u.width,u.height,u.layers||1]);}gpu.revision=t.revision;gpu.used=frame;return gpu;}
@@ -107,7 +110,7 @@ export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t
   }
   s.groups=Array.from({length:Math.max(...groups.keys())+1},(_,g)=>device.createBindGroup({layout:p.getBindGroupLayout(g),entries:groups.get(g)||[]}));s.groupKey=groupKey;return s;
  }
- return {stats,configure,prewarm(inputs){return Promise.all(inputs.map(i=>pipeline(i.manifest)));},async render(inputs,context,{dirty=new Map(),reuse=false}={}){
+ return {stats,configure,prewarm(inputs){return Promise.all(inputs.map(i=>pipeline(i.manifest)));},has:m=>pipelines.has(pipelineKey(m)),prebuild(m){try{return pipeline(m,true).then(p=>!!p);}catch{return Promise.resolve(false);}},async render(inputs,context,{dirty=new Map(),reuse=false}={}){
   frame++;const t0=performance.now();let ready,rejected,pipelineMs=0;
   const cached=reuse&&inputs===cacheInputs&&cacheReady;
   if(!cached){
@@ -132,7 +135,7 @@ export async function createLiveSongRenderer(device,shaders,{prepareTexture=t=>t
    }try{device.queue.submit([e.finish()]);}catch(error){stats.gpuErrors=(stats.gpuErrors||0)+1;stats.lastGpuError=String(error?.message||error||'GPU submission failed');for(const t of textures.values())t.destroy();textures.clear();cacheInputs=null;cacheReady=null;stats.residentTextureBytes=0;stats.frames++;return {accepted:0,rejected:{'GPU submission failed':ready.length},pipelineMs,resourceMs,replayMs:performance.now()-replayAt,gpuWaitMs:0,...stats};}
   }
   const replayMs=performance.now()-replayAt,waitAt=performance.now();await device.queue.onSubmittedWorkDone();stats.frames++;
-  for(const [key,g] of [...textures].sort((a,b)=>a[1].used-b[1].used))if(g.used!==frame&&(frame-g.used>120||(stats.residentTextureBytes||0)>cfg.gpuTextureBytes)){g.destroy();textures.delete(key);stats.residentTextureBytes-=g.byteSize;stats.textureEvictions=(stats.textureEvictions||0)+1;}
+  for(const [key,g] of [...textures].sort((a,b)=>a[1].used-b[1].used))if(g.used!==frame&&((frame-g.used>120&&!cfg.keepTextures)||(stats.residentTextureBytes||0)>cfg.gpuTextureBytes)){g.destroy();textures.delete(key);stats.residentTextureBytes-=g.byteSize;stats.textureEvictions=(stats.textureEvictions||0)+1;}
   stats.textureBudgetBytes=cfg.gpuTextureBytes;stats.textureOverBudgetBytes=Math.max(0,(stats.residentTextureBytes||0)-cfg.gpuTextureBytes);
   return {accepted:ready.length,rejected,pipelineMs,resourceMs,replayMs,gpuWaitMs:performance.now()-waitAt,...stats};
  }};

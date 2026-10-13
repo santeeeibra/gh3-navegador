@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node tools/serve.mjs",
     "build": "node tools/build.mjs",
-    "test": "node --test tests/engine.test.mjs tests/probe.test.mjs tests/online.test.mjs tests/original-copy.test.mjs tests/graphics.test.mjs tests/movil-audio-worklet.test.mjs tests/movil-gobernador.test.mjs tests/movil-aplicar.test.mjs tests/movil-medir.test.mjs",
+    "test": "node --test tests/engine.test.mjs tests/probe.test.mjs tests/online.test.mjs tests/original-copy.test.mjs tests/graphics.test.mjs tests/movil-audio-worklet.test.mjs tests/movil-gobernador.test.mjs tests/movil-aplicar.test.mjs tests/movil-medir.test.mjs tests/movil-precarga.test.mjs",
     "test:browser": "node tests/browser.mjs",
     "test:gh3-touch": "node tests/gh3-touch-browser.mjs",
     "build:gh3-unified": "node tools/iphone-probe/build-unified-game.mjs",

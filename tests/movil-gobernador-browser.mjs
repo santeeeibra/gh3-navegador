@@ -36,8 +36,9 @@ class FakeCanvas {
   transferToImageBitmap() { return {close() {}}; }
 }
 const code = await (await fetch('/r5snap-native60-gpu.js')).text();
-window.start = async (cpuLevel) => {
-  const board = new SharedArrayBuffer(128), ctl = new Int32Array(board); Atomics.store(ctl, C.VERSION, 1); Atomics.store(ctl, C.CPU, cpuLevel || 0);
+// stage: etapa del juego en el tablero (0 sin dato, 1 cargas/menús, 2 canción); snapshots=false: arranca sin dibujos (go() los empieza).
+window.start = async (cpuLevel, stage = 0, snapshots = true) => {
+  const board = new SharedArrayBuffer(128), ctl = new Int32Array(board); Atomics.store(ctl, C.VERSION, 1); Atomics.store(ctl, C.CPU, cpuLevel || 0); Atomics.store(ctl, C.STAGE, stage);
   const transport = new SharedArrayBuffer(4), st = window.st = {ctl, frames: 0, errors: [], stats: null};
   const port = {onmessage: null, start() {}, postMessage(m) { if (m.type !== 'frame') return; st.frames++; const l = new Int32Array(m.latch); Atomics.add(l, 1, 1); Atomics.store(l, 0, 0); }};
   const send = new Function('postMessage', 'OffscreenCanvas', 'let onmessage;\\n' + code + '\\nreturn (d) => onmessage({data: d});')((m) => {
@@ -45,12 +46,16 @@ window.start = async (cpuLevel) => {
   send({type: 'init', shaders, presentation: board, transport, port, sceneMotion: false});
   while (!st.ready && !st.errors.length) await new Promise((r) => setTimeout(r, 20));
   let seq = 0;
-  st.timer = setInterval(() => {
+  window.go = () => st.timer = setInterval(() => {
     const inputs = [draw(-1, 0, tex('pista', [255, 0, 0, 255], false), true, 0), draw(0.2, 1, tex('escena', window.sceneColor || [0, 0, 255, 255], true, window.sceneRev || 1), false, 1)];
     Atomics.store(new Int32Array(transport), 0, 1);
     send({type: 'snapshot', inputs, info: {seq: ++seq}, at: performance.timeOrigin + performance.now(), timing: {}});
   }, 50);
+  if (snapshots) go();
 };
+// Pipelines recordados por la precarga (IndexedDB del worker; acá el worker corre en la página).
+window.remembered = () => new Promise((res) => { const r = indexedDB.open('gh3-native60', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv');
+  r.onsuccess = () => { const g = r.result.transaction('kv').objectStore('kv').get('pipelines'); g.onsuccess = () => { r.result.close(); res(g.result || []); }; }; });
 // Lee el último cuadro del lienzo falso (1280×720 rgba8unorm).
 window.px = async (x, y) => {
   const d = canvas.device, buf = d.createBuffer({size: 256, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ}), e = d.createCommandEncoder();
@@ -109,6 +114,29 @@ try {
     await page.evaluate(() => Atomics.store(st.ctl, 3, 0)); await settle(page, 600);
     const updated = await page.evaluate(() => px(1000, 360));
     check('A textura de escena que cambia bajo presión: se mantiene la anterior y se actualiza al terminar', near(still, [0, 0, 255]) && near(updated, [0, 255, 0]), {still, updated});
+    await page.evaluate(() => stop());
+  }
+
+  // ---------------- C: precarga de pipelines (dos sesiones, mismo almacenamiento) ----------------
+  {
+    const page = await (await browser.newContext()).newPage(); page.on('pageerror', (e) => report.errors.push(e.message));
+    const ctl = () => page.evaluate(() => { const C = st.ctl; return {preloaded: C[27], pending: C[28], songBuilds: C[29], frames: st.frames, errors: st.errors, stats: st.stats && {pipelineBuilds: st.stats.pipelineBuilds, preloadBuilds: st.stats.preloadBuilds}}; });
+    await page.goto(web.url + '/gpu'); await page.waitForFunction(() => window.start);
+    await page.evaluate(() => start(0, 2)); await settle(page, 1200);
+    let c = await ctl();
+    check('C sesión 1 en canción: compila en juego (sin recuerdos) y lo cuenta', c.songBuilds === 1 && c.preloaded === 0 && c.frames > 5 && !c.errors.length, c);
+    check('C con la canción en juego no guarda nada todavía', (await page.evaluate(() => remembered())).length === 0);
+    await page.evaluate(() => Atomics.store(st.ctl, 26, 1)); await settle(page, 600);
+    const mem = await page.evaluate(() => remembered());
+    check('C al salir de la canción guarda el pipeline usado (marcado como de canción)', mem.length === 1 && mem[0].s === 1 && mem[0].n === 1 && mem[0].d.vs === 'SYNVS', mem);
+    await page.evaluate(() => stop());
+    await page.reload(); await page.waitForFunction(() => window.start);
+    await page.evaluate(() => start(0, 1, false)); await settle(page, 1200);
+    c = await ctl();
+    check('C sesión 2 en carga: precompila lo recordado sin dibujos del juego', c.preloaded === 1 && c.pending === 0 && c.frames === 0 && !c.errors.length, c);
+    await page.evaluate(() => { Atomics.store(st.ctl, 26, 2); go(); }); await settle(page, 1000);
+    c = await ctl();
+    check('C sesión 2 en canción: no compila nada en juego y dibuja bien', c.songBuilds === 0 && c.frames > 5 && near(await page.evaluate(() => px(320, 360)), [255, 0, 0]) && !c.errors.length, c);
     await page.evaluate(() => stop());
   }
 

@@ -4,7 +4,7 @@
   var ops = ["add", "subtract", "min", "max", "reverse-subtract"];
   var compares = ["never", "less", "equal", "less-equal", "greater", "not-equal", "greater-equal", "always"];
   var stencilOps = ["keep", "zero", "replace", "increment-clamp", "decrement-clamp", "invert", "increment-wrap", "decrement-wrap"];
-  async function createLiveSongRenderer(device2, shaders2, { prepareTexture = (t) => t } = {}) {
+  async function createLiveSongRenderer(device2, shaders2, { prepareTexture = (t) => t, onPipeline = null } = {}) {
     const modules = {}, bindings = {}, pipelines = /* @__PURE__ */ new Map(), slots = [], arenas = {}, textures = /* @__PURE__ */ new Map(), samplers = /* @__PURE__ */ new Map(), packed = {};
     let frame = 0, generation = 0, cacheInputs = null, cacheReady = null, cacheRejected = null;
     const stats = { frames: 0, draws: 0, pipelineBuilds: 0, bufferBuilds: 0, textureUploads: 0, readbacks: 0, rejectedPipelines: {} };
@@ -16,7 +16,7 @@
       modules[id] = device2.createShaderModule({ label: id, code: s.code });
       bindings[id] = [...s.code.matchAll(/@group\((\d+)\)\s*@binding\((\d+)\)\s*var(?:<[^>]*>)?\s+(\w+)\s*:\s*([^;]+);/g)].filter((m) => s.code.split(m[3]).length > 2).map((m) => ({ group: +m[1], binding: +m[2], name: m[3], type: m[4] }));
     }
-    const options = globalThis.__r5Options || {}, cfg = { scale: [0.5, 0.75].includes(options.renderScale) ? options.renderScale : 1, gpuTextureBytes: 67108864, deferSceneUploads: false };
+    const options = globalThis.__r5Options || {}, cfg = { scale: [0.5, 0.75].includes(options.renderScale) ? options.renderScale : 1, gpuTextureBytes: 67108864, deferSceneUploads: false, keepTextures: false };
     let scale = cfg.scale, renderWidth = 1280, renderHeight = 720, target = null, depth = null, upscalePipeline = null, upscaleGroup = null, upscaleSampler = null, upscaleReady = null;
     function upscale() {
       return upscaleReady ??= (async () => {
@@ -52,6 +52,7 @@
     function configure(next = {}) {
       if (next.gpuTextureBytes > 0) cfg.gpuTextureBytes = next.gpuTextureBytes;
       if ("deferSceneUploads" in next) cfg.deferSceneUploads = !!next.deferSceneUploads;
+      if ("keepTextures" in next) cfg.keepTextures = !!next.keepTextures;
       if ([0.5, 0.75, 1].includes(next.scale)) cfg.scale = next.scale;
       if (cfg.scale === scale) return;
       if (cfg.scale !== 1 && !upscalePipeline) {
@@ -68,10 +69,11 @@
       const x = Math.floor(s[0] * scale), y = Math.floor(s[1] * scale);
       return [x, y, Math.min(renderWidth, Math.ceil((s[0] + s[2]) * scale)) - x, Math.min(renderHeight, Math.ceil((s[1] + s[3]) * scale)) - y];
     };
-    function pipeline(m) {
+    const pipelineKey = (m) => JSON.stringify([m.vs, m.ps, m.blend, m.raster & 7, m.depth, m.stencil >>> 8, m.writeMask]);
+    function pipeline(m, preload = false) {
       useShader(m.vs);
       useShader(m.ps);
-      const key = JSON.stringify([m.vs, m.ps, m.blend, m.raster & 7, m.depth, m.stencil >>> 8, m.writeMask]);
+      const key = pipelineKey(m);
       if (pipelines.has(key)) return pipelines.get(key);
       const promise = (async () => {
         const b = m.blend, d = m.depth, st = m.stencil, blend = { color: { srcFactor: factors[b & 31], dstFactor: factors[b >>> 8 & 31], operation: ops[b >>> 5 & 7] }, alpha: { srcFactor: factors[b >>> 16 & 31], dstFactor: factors[b >>> 24 & 31], operation: ops[b >>> 21 & 7] } };
@@ -80,6 +82,11 @@
         const front = d & 1 ? { compare: compares[d >>> 8 & 7], failOp: stencilOps[d >>> 11 & 7], passOp: stencilOps[d >>> 14 & 7], depthFailOp: stencilOps[d >>> 17 & 7] } : { compare: "always" };
         const p = await device2.createRenderPipelineAsync({ label: m.vs + "/" + m.ps, layout: "auto", vertex: { module: modules[m.vs], entryPoint: "main" }, fragment: { module: modules[m.ps], entryPoint: "main", targets: [{ format: "rgba8unorm", blend, writeMask: m.writeMask }] }, primitive: { topology: "triangle-list", frontFace: m.raster & 4 ? "cw" : "ccw", cullMode: (m.raster & 3) === 2 ? "back" : (m.raster & 3) === 1 ? "front" : "none" }, depthStencil: { format: "depth24plus-stencil8", depthWriteEnabled: !!(d & 4), depthCompare: d & 2 ? compares[d >>> 4 & 7] : "always", stencilFront: front, stencilBack: front, stencilReadMask: st >>> 8 & 255, stencilWriteMask: st >>> 16 & 255 } });
         p.cacheId = ++stats.pipelineBuilds;
+        if (preload) stats.preloadBuilds = (stats.preloadBuilds || 0) + 1;
+        try {
+          onPipeline?.(m, preload);
+        } catch {
+        }
         return p;
       })().catch((e) => {
         stats.rejectedPipelines[key] = e.message;
@@ -216,6 +223,12 @@
     }
     return { stats, configure, prewarm(inputs) {
       return Promise.all(inputs.map((i) => pipeline(i.manifest)));
+    }, has: (m) => pipelines.has(pipelineKey(m)), prebuild(m) {
+      try {
+        return pipeline(m, true).then((p) => !!p);
+      } catch {
+        return Promise.resolve(false);
+      }
     }, async render(inputs, context2, { dirty = /* @__PURE__ */ new Map(), reuse = false } = {}) {
       frame++;
       const t0 = performance.now();
@@ -293,7 +306,7 @@
       const replayMs = performance.now() - replayAt, waitAt = performance.now();
       await device2.queue.onSubmittedWorkDone();
       stats.frames++;
-      for (const [key, g] of [...textures].sort((a, b) => a[1].used - b[1].used)) if (g.used !== frame && (frame - g.used > 120 || (stats.residentTextureBytes || 0) > cfg.gpuTextureBytes)) {
+      for (const [key, g] of [...textures].sort((a, b) => a[1].used - b[1].used)) if (g.used !== frame && (frame - g.used > 120 && !cfg.keepTextures || (stats.residentTextureBytes || 0) > cfg.gpuTextureBytes)) {
         g.destroy();
         textures.delete(key);
         stats.residentTextureBytes -= g.byteSize;
@@ -621,8 +634,16 @@
     // GPU: buffers (arenas) en la GPU, KiB
     VERSION: 24,
     // consumidor: CONTROL_VERSION cuando el SAB tiene este formato
-    WORKER_US: 25
+    WORKER_US: 25,
     // GPU: costo total del cuadro en el worker (CPU del worker + espera GPU), promedio móvil, µs
+    STAGE: 26,
+    // página→GPU: 0 sin dato, 1 cargas/menús, 2 canción en juego (señales gh3stage). Claude 2026-10-13, precarga
+    PRELOADED: 27,
+    // GPU: pipelines precompilados fuera del juego (recordados de sesiones anteriores)
+    PRELOAD_PENDING: 28,
+    // GPU: pipelines recordados que faltan precompilar
+    SONG_BUILDS: 29
+    // GPU: pipelines que hubo que compilar con la canción en juego (lo que la precarga quiere llevar a 0)
   });
   function ewmaStore(i32, index, valueUs, alpha = 0.2) {
     const prev = Atomics.load(i32, index), v = Math.max(0, Math.min(2e9, Math.round(valueUs)));
@@ -669,7 +690,123 @@
     return { scale: gpu.scale, gpuTextureBytes: mem.gpuTextureBytes, cpuTextureBytes: mem.cpuTextureBytes, deferSceneUploads: cpu.deferSceneUploads || mem.deferSceneUploads };
   }
 
+  // tools/r5-native60/preload.mjs
+  var pipelineDesc = (m) => ({ vs: m.vs, ps: m.ps, blend: m.blend, raster: m.raster, depth: m.depth, stencil: m.stencil, writeMask: m.writeMask });
+  var descKey = (d) => JSON.stringify([d.vs, d.ps, d.blend, d.raster & 7, d.depth, d.stencil >>> 8, d.writeMask]);
+  function idbStore(name = "gh3-native60", key = "pipelines") {
+    const open = () => new Promise((resolve, reject) => {
+      const r = indexedDB.open(name, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+    });
+    const run = (mode, fn) => open().then((db) => new Promise((resolve, reject) => {
+      const tx = db.transaction("kv", mode), r = fn(tx.objectStore("kv"));
+      tx.oncomplete = () => {
+        db.close();
+        resolve(r.result);
+      };
+      tx.onerror = tx.onabort = () => {
+        db.close();
+        reject(tx.error);
+      };
+    }));
+    return {
+      load: () => typeof indexedDB === "undefined" ? Promise.resolve([]) : run("readonly", (s) => s.get(key)).then((v) => Array.isArray(v) ? v : [], () => []),
+      save: (list) => typeof indexedDB === "undefined" ? Promise.resolve() : run("readwrite", (s) => s.put(list, key)).catch(() => {
+      })
+    };
+  }
+  function createPreloader({ renderer: renderer2, store, board: board2 = null, maxInFlight = 2, maxEntries = 512, saveDelayMs = 2e3, now = () => Date.now() }) {
+    const entries = /* @__PURE__ */ new Map();
+    const seen = /* @__PURE__ */ new Set();
+    let queue = [], inFlight = 0, loaded = false, dirty = false, saveAt = 0, lastStage = 0;
+    const stats = { recorded: 0, preloaded: 0, failed: 0, songBuilds: 0, skippedBusy: 0 };
+    const stage = () => board2 ? Atomics.load(board2, C.STAGE) : 0, calm = () => !board2 || Atomics.load(board2, C.LEVEL) === 0;
+    const publish = () => {
+      if (!board2) return;
+      Atomics.store(board2, C.PRELOADED, stats.preloaded);
+      Atomics.store(board2, C.PRELOAD_PENDING, queue.length + inFlight);
+      Atomics.store(board2, C.SONG_BUILDS, stats.songBuilds);
+    };
+    const order = () => [...entries.values()].sort((a, b) => b.s - a.s || b.n - a.n || b.t - a.t);
+    const ready = store.load().then((list) => {
+      for (const e of list) if (e?.d?.vs && e?.d?.ps) {
+        const k = descKey(e.d);
+        if (!entries.has(k)) entries.set(k, { d: pipelineDesc(e.d), n: e.n | 0, s: e.s ? 1 : 0, t: e.t || 0 });
+      }
+      queue = order().map((e) => e.d).filter((d) => !renderer2.has(d));
+      loaded = true;
+      publish();
+    }, () => {
+      loaded = true;
+    });
+    function record(m, preload = false) {
+      const d = pipelineDesc(m), k = descKey(d), inSong = stage() === 2;
+      if (preload) stats.preloaded++;
+      else if (inSong) stats.songBuilds++;
+      let e = entries.get(k);
+      if (!e) entries.set(k, e = { d, n: 0, s: 0, t: 0 });
+      if (!preload) {
+        if (!seen.has(k)) {
+          seen.add(k);
+          e.n++;
+        }
+        if (inSong) e.s = 1;
+        e.t = now();
+        dirty = true;
+        stats.recorded++;
+      }
+      publish();
+    }
+    function pump() {
+      const s = stage();
+      if (lastStage === 2 && s !== 2) saveAt = 0;
+      lastStage = s;
+      if (!loaded || s !== 1) return;
+      if (dirty && now() >= saveAt) {
+        dirty = false;
+        saveAt = now() + saveDelayMs;
+        let list = order();
+        if (list.length > maxEntries) {
+          list = list.slice(0, maxEntries);
+          entries.clear();
+          for (const e of list) entries.set(descKey(e.d), e);
+        }
+        store.save(list);
+      }
+      if (!calm()) {
+        if (queue.length) stats.skippedBusy++;
+        return;
+      }
+      while (inFlight < maxInFlight && queue.length) {
+        const d = queue.shift();
+        if (renderer2.has(d)) continue;
+        inFlight++;
+        renderer2.prebuild(d).then((ok) => {
+          if (!ok) {
+            stats.failed++;
+            entries.delete(descKey(d));
+            dirty = true;
+          }
+        }, () => {
+          stats.failed++;
+        }).finally(() => {
+          inFlight--;
+          publish();
+        });
+      }
+      publish();
+    }
+    return { record, pump, ready, stats, get pending() {
+      return queue.length + inFlight;
+    }, get size() {
+      return entries.size;
+    } };
+  }
+
   // tools/r5-native60/gpu-worker.mjs
+  var preloader = null;
   var renderer;
   var canvas;
   var context;
@@ -726,7 +863,9 @@
         device = await adapter.requestDevice({ requiredFeatures: bc ? ["texture-compression-bc"] : [] });
         device.addEventListener("uncapturederror", (e) => stop(e.error));
         device.lost.then((e) => stop(Error("GPU lost: " + e.message)));
-        renderer = await createLiveSongRenderer(device, shaders, { prepareTexture: (t) => sceneTexture(t, bc) });
+        renderer = await createLiveSongRenderer(device, shaders, { prepareTexture: (t) => sceneTexture(t, bc), onPipeline: (m2, pre) => preloader?.record(m2, pre) });
+        preloader = createPreloader({ renderer, store: idbStore(), board: latch.length > C.SONG_BUILDS ? latch : null });
+        setInterval(() => preloader.pump(), 100);
         canvas = new OffscreenCanvas(1280, 720);
         context = canvas.getContext("webgpu");
         context.configure({ device, format: "rgba8unorm", usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT, alphaMode: "opaque" });
