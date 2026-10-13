@@ -167,6 +167,7 @@ if (m.type === 'log') {
 <script src="gh3-input.js"></script>
 <script src="gh3-touch.js"></script>
 <script src="gh3-touch-prueba.js"></script>
+<script src="gh3-governor.js"></script>
 <script src="gh3-tape.js"></script>
 <script src="gh3-landscape.js"></script>
 <script src="r5snap-panel.js"></script>
@@ -243,7 +244,7 @@ Ajuste de la referencia provisoria oculta (no mueve la imagen original), ms: <in
   if (audioStatus) stat.after(audioStatus);
   if (audioReset && audioStatus) audioStatus.after(audioReset);
   document.getElementById('copySongAudio').onclick = async () => {
-    const text = JSON.stringify({ audio: window.d4?.r6Audio || null, clockMs: S.clock?.(), visualOffsetMs: S.offsetMs, song: S.chart?.name, browser: navigator.userAgent }, null, 2);
+    const text = JSON.stringify({ audio: window.d4?.r6Audio || null, clockMs: S.clock?.(), visualOffsetMs: S.offsetMs, song: S.chart?.name, browser: navigator.userAgent, gobernador: window.gh3Governor?.summary?.() || null }, null, 2);
     const output = document.getElementById('songAudioDiagnostic'); output.hidden = false; output.textContent = text;
     try { await navigator.clipboard.writeText(text); } catch {}
   };

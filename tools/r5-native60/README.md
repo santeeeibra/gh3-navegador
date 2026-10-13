@@ -67,3 +67,26 @@ No tomar `index.html`, runtime, cargador o wasm para integrar automáticamente
 en una base posterior de Claude. La ruta del port directo requiere su pequeño
 hook `r5NativePort` en el runtime y `native60-page.js`; debe integrarse y probarse
 deliberadamente, conservando cambios posteriores de UI/audio.
+
+## Gobernador móvil (Claude, 2026-10-13)
+
+Pedido aprobado por Santi (`docs/nube/PLAN-MOVIL-PRIORIDADES.md`). El audio a
+ritmo original y los controles/juicio no se negocian; se sacrifican gráficos.
+
+- `control.mjs`: tablero compartido de 128 bytes. Es el mismo SAB que antes
+  era `presentation` ([0] y [1] sin cambios); suma telemetría (swaps, snapshots,
+  costo de preparación, espera de GPU, memoria, escala) y la política.
+- `governor-policy.mjs`: qué hace cada nivel. CPU: captura ≤1 cada 25 ms y sin
+  texturas nuevas de escena no esenciales; en mínimo sólo pista/notas/colas/HUD.
+  GPU: 1280×720 → 960×540 → 640×360 con nitidez moderada. Memoria: presupuestos
+  de texturas inactivas 64/40/24 MiB. La decisión de saltear un swap se toma
+  antes de leer memoria del juego; nunca se difiere una lectura.
+- La decisión la toma la página (`web/gh3-native60/gh3-governor.js`) con la
+  reserva y tendencia de audio del worklet, picos de CPU/GPU, memoria y
+  latencia de entrada. Celular: activo. PC: sólo observa (`?gov=1` lo activa,
+  `?gov=0` lo apaga).
+- Aplicar en la PC: `node tools/r5-native60/build.mjs` y después
+  `node tools/r5-native60/apply-web.mjs` (respaldo automático de lo que reemplaza).
+- Pruebas sin el juego: `npm test`, `npm run test:movil-gobernador`
+  (WebGPU SwiftShader con dibujos sintéticos; la presentación al lienzo no se
+  puede probar en la nube). Umbrales sin calibrar: medir en GH3 real e iPhone 11.

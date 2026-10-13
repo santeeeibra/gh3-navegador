@@ -156,6 +156,8 @@
     if (window.gh3Loader?.error && !S.loaderErrorSeen) { S.loaderErrorSeen = true; fail('cargador', window.gh3Loader.error); }
     const quiet = S.lastLogT !== undefined && ['programa', 'compilando', 'motor', 'menu', 'entrando'].includes(S.stage) && document.visibilityState === 'visible' ? sec() - S.lastLogT : 0;
     S.quietS = Math.round(quiet);
+    // Claude 2026-10-13: resumen del gobernador móvil (estado, transiciones, métricas separadas, cortes) en el informe guardado.
+    if (window.gh3Governor?.summary) try { S.governor = window.gh3Governor.summary(); } catch {}
     S.beat = { t: sec(), stage: S.stage, clockS: Number.isFinite(clock) ? +(clock / 1000).toFixed(1) : null, wasmMB: S.mem.wasmBytes ? Math.round(S.mem.wasmBytes / 1048576) : null, fps: window.d4?.songPresented ?? null };
     save(); render();
   }, 2000);
@@ -209,6 +211,7 @@
       'Etapas (s): ' + ORDER.filter((k) => k in S.stages).map((k) => STAGES[k] + ' ' + S.stages[k]).join(' → '),
       `Memoria wasm ${S.mem.wasmBytes ? (S.mem.wasmBytes / 1048576).toFixed(0) : '—'} MB (máx ${S.mem.wasmPeak ? (S.mem.wasmPeak / 1048576).toFixed(0) : '—'}) · heap JS ${S.mem.jsHeap}`,
       'Sonido: ' + JSON.stringify(S.audio)];
+    if (S.governor) L.push('Gobernador: ' + JSON.stringify(S.governor));
     if (S.previous) L.push('Sesión anterior: ' + S.previous.verdict + (S.previous.errors.length ? ' Errores: ' + S.previous.errors.map((e) => e.kind + ': ' + e.message).join(' | ') : ''));
     if (S.errors.length) { L.push('ERRORES:'); for (const e of S.errors) L.push(`  [${e.t} s, ${STAGES[e.stage] || e.stage}] ${e.kind}: ${e.message}${e.file ? ' (' + e.file + ':' + e.line + ')' : ''}${e.stack ? '\n    ' + e.stack : ''}`); }
     if (S.consoleErrors?.length) L.push('console.error: ' + S.consoleErrors.slice(-5).join(' | '));

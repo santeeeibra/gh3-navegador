@@ -6,14 +6,15 @@
   "scripts": {
     "dev": "node tools/serve.mjs",
     "build": "node tools/build.mjs",
-    "test": "node --test tests/engine.test.mjs tests/probe.test.mjs tests/online.test.mjs tests/original-copy.test.mjs tests/graphics.test.mjs tests/movil-audio-worklet.test.mjs",
+    "test": "node --test tests/engine.test.mjs tests/probe.test.mjs tests/online.test.mjs tests/original-copy.test.mjs tests/graphics.test.mjs tests/movil-audio-worklet.test.mjs tests/movil-gobernador.test.mjs tests/movil-aplicar.test.mjs",
     "test:browser": "node tests/browser.mjs",
     "test:gh3-touch": "node tests/gh3-touch-browser.mjs",
     "build:gh3-unified": "node tools/iphone-probe/build-unified-game.mjs",
     "test:gh3-demand": "node tests/gh3-demand.mjs",
     "test:gh3-unified": "node tests/gh3-unified-browser.mjs",
     "test:gh3-network": "node tests/gh3-network-cache-browser.mjs",
-    "test:movil-tactil": "node tests/movil-tactil-browser.mjs"
+    "test:movil-tactil": "node tests/movil-tactil-browser.mjs",
+    "test:movil-gobernador": "node tests/movil-gobernador-browser.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3"

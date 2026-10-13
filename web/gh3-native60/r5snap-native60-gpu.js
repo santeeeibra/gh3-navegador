@@ -16,23 +16,58 @@
       modules[id] = device2.createShaderModule({ label: id, code: s.code });
       bindings[id] = [...s.code.matchAll(/@group\((\d+)\)\s*@binding\((\d+)\)\s*var(?:<[^>]*>)?\s+(\w+)\s*:\s*([^;]+);/g)].filter((m) => s.code.split(m[3]).length > 2).map((m) => ({ group: +m[1], binding: +m[2], name: m[3], type: m[4] }));
     }
-    const options = globalThis.__r5Options || {}, scale = [0.5, 0.75].includes(options.renderScale) ? options.renderScale : 1;
-    const renderWidth = Math.round(1280 * scale), renderHeight = Math.round(720 * scale);
-    let upscalePipeline, upscaleGroup;
-    if (scale !== 1) {
-      const module = device2.createShaderModule({ label: "scene-upscale", code: `
+    const options = globalThis.__r5Options || {}, cfg = { scale: [0.5, 0.75].includes(options.renderScale) ? options.renderScale : 1, gpuTextureBytes: 67108864, deferSceneUploads: false };
+    let scale = cfg.scale, renderWidth = 1280, renderHeight = 720, target = null, depth = null, upscalePipeline = null, upscaleGroup = null, upscaleSampler = null, upscaleReady = null;
+    function upscale() {
+      return upscaleReady ??= (async () => {
+        const module = device2.createShaderModule({ label: "scene-upscale", code: `
    @group(0) @binding(0) var image:texture_2d<f32>;
    @group(0) @binding(1) var filtering:sampler;
    struct V { @builtin(position) p:vec4<f32>, @location(0) uv:vec2<f32> }
    @vertex fn vs(@builtin(vertex_index) i:u32)->V {let p=array<vec2<f32>,3>(vec2(-1.,-1.),vec2(3.,-1.),vec2(-1.,3.))[i];return V(vec4(p,0.,1.),vec2((p.x+1.)*.5,(1.-p.y)*.5));}
-   @fragment fn fs(v:V)->@location(0) vec4<f32>{return textureSampleLevel(image,filtering,v.uv,0.);}` });
-      upscalePipeline = await device2.createRenderPipelineAsync({ label: "scene-upscale", layout: "auto", vertex: { module, entryPoint: "vs" }, fragment: { module, entryPoint: "fs", targets: [{ format: "rgba8unorm" }] }, primitive: { topology: "triangle-list" } });
+   @fragment fn fs(v:V)->@location(0) vec4<f32>{
+    let size=vec2<f32>(textureDimensions(image));let px=1./size;
+    let c=textureSampleLevel(image,filtering,v.uv,0.);
+    let n=textureSampleLevel(image,filtering,v.uv+vec2(px.x,0.),0.)+textureSampleLevel(image,filtering,v.uv-vec2(px.x,0.),0.)+textureSampleLevel(image,filtering,v.uv+vec2(0.,px.y),0.)+textureSampleLevel(image,filtering,v.uv-vec2(0.,px.y),0.);
+    let amount=select(.25,.15,size.x>800.);
+    return vec4(clamp(c.rgb+(c.rgb*4.-n.rgb)*amount,vec3(0.),vec3(1.)),1.);}` });
+        upscaleSampler = device2.createSampler({ minFilter: "linear", magFilter: "linear" });
+        upscalePipeline = await device2.createRenderPipelineAsync({ label: "scene-upscale", layout: "auto", vertex: { module, entryPoint: "vs" }, fragment: { module, entryPoint: "fs", targets: [{ format: "rgba8unorm" }] }, primitive: { topology: "triangle-list" } });
+      })();
+    }
+    function allocateTargets() {
+      target?.destroy();
+      depth?.destroy();
+      upscaleGroup = null;
+      renderWidth = Math.round(1280 * scale);
+      renderHeight = Math.round(720 * scale);
+      target = device2.createTexture({ size: [renderWidth, renderHeight], format: "rgba8unorm", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING });
+      depth = device2.createTexture({ size: [renderWidth, renderHeight], format: "depth24plus-stencil8", usage: GPUTextureUsage.RENDER_ATTACHMENT });
+      stats.scale = scale;
+      stats.renderWidth = renderWidth;
+      stats.renderHeight = renderHeight;
+    }
+    if (scale !== 1) await upscale();
+    allocateTargets();
+    function configure(next = {}) {
+      if (next.gpuTextureBytes > 0) cfg.gpuTextureBytes = next.gpuTextureBytes;
+      if ("deferSceneUploads" in next) cfg.deferSceneUploads = !!next.deferSceneUploads;
+      if ([0.5, 0.75, 1].includes(next.scale)) cfg.scale = next.scale;
+      if (cfg.scale === scale) return;
+      if (cfg.scale !== 1 && !upscalePipeline) {
+        if (!stats.upscaleError) upscale().catch((e) => {
+          stats.upscaleError = String(e?.message || e);
+        });
+        return;
+      }
+      scale = cfg.scale;
+      allocateTargets();
+      stats.scaleChanges = (stats.scaleChanges || 0) + 1;
     }
     const scaledScissor = (s) => {
       const x = Math.floor(s[0] * scale), y = Math.floor(s[1] * scale);
       return [x, y, Math.min(renderWidth, Math.ceil((s[0] + s[2]) * scale)) - x, Math.min(renderHeight, Math.ceil((s[1] + s[3]) * scale)) - y];
     };
-    const target = device2.createTexture({ size: [renderWidth, renderHeight], format: "rgba8unorm", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING }), depth = device2.createTexture({ size: [renderWidth, renderHeight], format: "depth24plus-stencil8", usage: GPUTextureUsage.RENDER_ATTACHMENT });
     function pipeline(m) {
       useShader(m.vs);
       useShader(m.ps);
@@ -53,8 +88,12 @@
       pipelines.set(key, promise);
       return promise;
     }
-    function texture(t) {
+    function texture(t, defer = false) {
       let gpu = textures.get(t.key);
+      if (!gpu && defer && t.scene && !t.video) {
+        stats.sceneDeferred = (stats.sceneDeferred || 0) + 1;
+        throw Error("Scene upload deferred");
+      }
       if (!gpu) {
         const u = prepareTexture(t);
         gpu = device2.createTexture({ size: [u.width, u.height, u.layers || 1], format: u.format, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
@@ -66,6 +105,11 @@
         gpu.byteSize = u.data.byteLength;
         stats.residentTextureBytes = (stats.residentTextureBytes || 0) + gpu.byteSize;
       } else if ((t.video || t.revision !== gpu.revision) && gpu.used !== frame) {
+        if (defer && t.scene) {
+          stats.sceneDeferred = (stats.sceneDeferred || 0) + 1;
+          gpu.used = frame;
+          return gpu;
+        }
         const u = prepareTexture(t);
         device2.queue.writeTexture({ texture: gpu }, u.data, { bytesPerRow: u.bytesPerRow, rowsPerImage: u.rowsPerImage }, [u.width, u.height, u.layers || 1]);
       }
@@ -145,8 +189,8 @@
       }
     }
     function slot(i, input, p) {
-      const s = slots[i];
-      const groupKey = JSON.stringify([generation, p.cacheId, input.textures.map((t) => [t.slot, texture(t.texture).cacheId, t.sampler])]);
+      const s = slots[i], defer = cfg.deferSceneUploads && !input.manifest.essential && !input.manifest.video;
+      const groupKey = JSON.stringify([generation, p.cacheId, input.textures.map((t) => [t.slot, texture(t.texture, defer).cacheId, t.sampler])]);
       if (s.groupKey === groupKey) return s;
       const used = new Map([...bindings[input.manifest.vs], ...bindings[input.manifest.ps]].map((b) => [b.group + ":" + b.binding, b])), groups = /* @__PURE__ */ new Map();
       for (const b of used.values()) {
@@ -160,7 +204,7 @@
             const q = t.sampler, k = JSON.stringify(q), a = ["repeat", "mirror-repeat", "clamp-to-edge"];
             if (!samplers.has(k)) samplers.set(k, device2.createSampler({ magFilter: q.mag ? "linear" : "nearest", minFilter: q.min ? "linear" : "nearest", mipmapFilter: q.mip ? "linear" : "nearest", addressModeU: a[q.clampX], addressModeV: a[q.clampY], lodMaxClamp: 0 }));
             resource = samplers.get(k);
-          } else if (b.type.startsWith("texture_2d_array") || b.type.startsWith("texture_cube")) resource = texture(t.texture).view;
+          } else if (b.type.startsWith("texture_2d_array") || b.type.startsWith("texture_cube")) resource = texture(t.texture, defer).view;
           else throw Error("Unsupported binding " + b.name);
         }
         if (!groups.has(b.group)) groups.set(b.group, []);
@@ -170,7 +214,7 @@
       s.groupKey = groupKey;
       return s;
     }
-    return { stats, prewarm(inputs) {
+    return { stats, configure, prewarm(inputs) {
       return Promise.all(inputs.map((i) => pipeline(i.manifest)));
     }, async render(inputs, context2, { dirty = /* @__PURE__ */ new Map(), reuse = false } = {}) {
       frame++;
@@ -225,7 +269,7 @@
         pass.end();
         if (scale === 1) e.copyTextureToTexture({ texture: target }, { texture: context2.getCurrentTexture() }, [1280, 720]);
         else {
-          upscaleGroup ??= device2.createBindGroup({ layout: upscalePipeline.getBindGroupLayout(0), entries: [{ binding: 0, resource: target.createView() }, { binding: 1, resource: device2.createSampler({ minFilter: "linear", magFilter: "linear" }) }] });
+          upscaleGroup ??= device2.createBindGroup({ layout: upscalePipeline.getBindGroupLayout(0), entries: [{ binding: 0, resource: target.createView() }, { binding: 1, resource: upscaleSampler }] });
           const blit = e.beginRenderPass({ colorAttachments: [{ view: context2.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
           blit.setPipeline(upscalePipeline);
           blit.setBindGroup(0, upscaleGroup);
@@ -249,14 +293,14 @@
       const replayMs = performance.now() - replayAt, waitAt = performance.now();
       await device2.queue.onSubmittedWorkDone();
       stats.frames++;
-      for (const [key, g] of [...textures].sort((a, b) => a[1].used - b[1].used)) if (g.used !== frame && (frame - g.used > 120 || (stats.residentTextureBytes || 0) > 67108864)) {
+      for (const [key, g] of [...textures].sort((a, b) => a[1].used - b[1].used)) if (g.used !== frame && (frame - g.used > 120 || (stats.residentTextureBytes || 0) > cfg.gpuTextureBytes)) {
         g.destroy();
         textures.delete(key);
         stats.residentTextureBytes -= g.byteSize;
         stats.textureEvictions = (stats.textureEvictions || 0) + 1;
       }
-      stats.textureBudgetBytes = 67108864;
-      stats.textureOverBudgetBytes = Math.max(0, (stats.residentTextureBytes || 0) - 67108864);
+      stats.textureBudgetBytes = cfg.gpuTextureBytes;
+      stats.textureOverBudgetBytes = Math.max(0, (stats.residentTextureBytes || 0) - cfg.gpuTextureBytes);
       return { accepted: ready.length, rejected, pipelineMs, resourceMs, replayMs, gpuWaitMs: performance.now() - waitAt, ...stats };
     } };
   }
@@ -589,6 +633,42 @@
     if (v > Atomics.load(i32, index)) Atomics.store(i32, index, v);
   }
 
+  // tools/r5-native60/governor-policy.mjs
+  var POLICY = Object.freeze({
+    cpu: [
+      // Normal: captura cada swap que encuentre libre al worker GPU (como antes).
+      { minCaptureMs: 0, roadOnly: false, deferSceneUploads: false },
+      // Protegido: como máximo un snapshot cada 25 ms (≈ 1 de cada 2 swaps a 60 Hz) y sin convertir/subir texturas
+      // nuevas de escena (no esenciales). La decisión se toma ANTES de leer memoria del juego.
+      { minCaptureMs: 25, roadOnly: false, deferSceneUploads: true },
+      // Mínimo: sólo pista/notas/colas/HUD (el mismo filtro de sombreadores que la calidad «colas»).
+      { minCaptureMs: 25, roadOnly: true, deferSceneUploads: true }
+    ],
+    gpu: [
+      { scale: 1 },
+      // 1280×720
+      { scale: 0.75 },
+      // 960×540 (56,25 % de píxeles)
+      { scale: 0.5 }
+      // 640×360 (25 %)
+    ],
+    mem: [
+      // Presupuestos de texturas INACTIVAS (las activas del cuadro nunca se expulsan): GPU residente y copias en el worker.
+      { gpuTextureBytes: 64 << 20, cpuTextureBytes: 96 << 20, deferSceneUploads: false },
+      { gpuTextureBytes: 40 << 20, cpuTextureBytes: 48 << 20, deferSceneUploads: false },
+      { gpuTextureBytes: 24 << 20, cpuTextureBytes: 24 << 20, deferSceneUploads: true }
+    ]
+  });
+  function knob(i32, index) {
+    if (!i32 || i32.length <= C.VERSION || Atomics.load(i32, C.VERSION) < 1) return 0;
+    const v = Atomics.load(i32, index);
+    return v >= 2 ? 2 : v === 1 ? 1 : 0;
+  }
+  function rendererConfig(cpuLevel, gpuLevel, memLevel) {
+    const cpu = POLICY.cpu[cpuLevel] || POLICY.cpu[0], gpu = POLICY.gpu[gpuLevel] || POLICY.gpu[0], mem = POLICY.mem[memLevel] || POLICY.mem[0];
+    return { scale: gpu.scale, gpuTextureBytes: mem.gpuTextureBytes, cpuTextureBytes: mem.cpuTextureBytes, deferSceneUploads: cpu.deferSceneUploads || mem.deferSceneUploads };
+  }
+
   // tools/r5-native60/gpu-worker.mjs
   var renderer;
   var canvas;
@@ -610,6 +690,20 @@
   var sourceSerial = 0;
   var state = { rendered: 0, snapshots: 0, stale: 0, coalesced: 0, textureCPUBytes: 0, targetHz: 60, maxGPUFramesInFlight: 1, directPort: true, originalShaders: true };
   var board = () => latch && latch.length > C.WORKER_US ? latch : null;
+  var policyKey = -1;
+  var policy = rendererConfig(0, 0, 0);
+  function applyPolicy() {
+    const b = board(), cpu = knob(b, C.CPU), gpu = knob(b, C.GPU), mem = knob(b, C.MEM), key = cpu | gpu << 2 | mem << 4;
+    if (key !== policyKey) {
+      policyKey = key;
+      policy = rendererConfig(cpu, gpu, mem);
+      state.policy = { cpu, gpu, mem };
+    }
+    if (key !== state.appliedKey || renderer.stats.scale !== policy.scale) {
+      renderer.configure(policy);
+      state.appliedKey = key;
+    }
+  }
   function stop(error) {
     clearTimeout(timer);
     if (transport) Atomics.store(transport, 0, 0);
@@ -695,7 +789,7 @@
         const active = new Set(current.inputs.flatMap((i) => i.textures.map((t) => t.texture.key))), retired = [];
         let bytes = 0;
         for (const k of known.values()) bytes += k.texture.data?.byteLength || 0;
-        for (const [key, k] of [...known].sort((a, b) => a[1].last - b[1].last)) if (!active.has(key) && (sourceSerial - k.last > 120 || bytes > 96 * 1024 * 1024)) {
+        for (const [key, k] of [...known].sort((a, b) => a[1].last - b[1].last)) if (!active.has(key) && (sourceSerial - k.last > 120 || bytes > policy.cpuTextureBytes)) {
           bytes -= k.texture.data?.byteLength || 0;
           known.delete(key);
           retired.push(key);
@@ -710,6 +804,7 @@
           const dt = fresh ? 0 : Math.max(0, Math.min(100, age)) / 1e3;
           const animateAt = performance.now(), dirty = temporal.animate(dt);
           state.lastAnimateMs = performance.now() - animateAt;
+          applyPolicy();
           const frameAt = performance.now(), gpu = await renderer.render(temporal.inputs, context, { reuse: !fresh, dirty });
           const b = board();
           if (b) {
@@ -721,6 +816,7 @@
             Atomics.store(b, C.TEX_CPU_KIB, state.textureCPUBytes >> 10);
             Atomics.store(b, C.BUF_KIB, (gpu.bufferBytes || 0) >> 10);
             Atomics.store(b, C.SCALE_PCT, Math.round((gpu.scale || 1) * 100));
+            Atomics.store(b, C.SCENE_DEFERRED, gpu.sceneDeferred || 0);
           }
           state.rendered++;
           state.deltaMs = dt * 1e3;
