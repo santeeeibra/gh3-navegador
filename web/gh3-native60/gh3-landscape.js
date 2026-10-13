@@ -9,9 +9,8 @@ body.gh3Play{overflow:hidden!important;background:#000!important}
 body.gh3Play #r5Box{position:fixed!important;inset:0!important;z-index:40;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:#000!important;display:flex!important;align-items:center;justify-content:center;min-height:0!important}
 body.gh3Play #r5Canvas{width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;object-fit:contain}
 body.gh3Play #r5Stat{display:none!important}}
-/* Sobre la imagen: trastes con poco relleno para que se vean las notas que llegan a los aros. */
+/* Sobre la imagen: trastes sin relleno (sólo el borde tenue de gh3-touch.js) para que se vean las notas que llegan a los aros. */
 body.gh3Play #gh3Touch{--gh3-touch-opacity:.6}
-body.gh3Play #gh3Touch .frets .z:not(.on){background:color-mix(in srgb,var(--c) 10%,transparent)}
 body.gh3Play #gh3Touch .z:not(.on):not(.frets .z){background:rgba(255,255,255,.04)}`;
   const coarse = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0 || new URLSearchParams(location.search).get('touch') === '1';
   const on = () => {

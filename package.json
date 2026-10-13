@@ -12,7 +12,8 @@
     "build:gh3-unified": "node tools/iphone-probe/build-unified-game.mjs",
     "test:gh3-demand": "node tests/gh3-demand.mjs",
     "test:gh3-unified": "node tests/gh3-unified-browser.mjs",
-    "test:gh3-network": "node tests/gh3-network-cache-browser.mjs"
+    "test:gh3-network": "node tests/gh3-network-cache-browser.mjs",
+    "test:movil-tactil": "node tests/movil-tactil-browser.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3"

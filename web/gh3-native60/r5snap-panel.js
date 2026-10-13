@@ -138,7 +138,7 @@
       ? 'Los <b>controles táctiles se pueden cambiar</b>: cuando arranca el juego, tocá <b>«Ajustes táctiles»</b> (arriba) para mover, agrandar o achicar las zonas de los trastes. Con teclado o mando: pestaña <b>Teclas</b> del panel.'
       : 'Las <b>teclas y el mando se pueden cambiar</b> en la pestaña <b>Teclas</b> del panel (la guía de botones está en <b>Controles</b>).';
     g.innerHTML = `<div>${calidad} Para cambiarla: pestaña <b>Gráficos</b> del panel ${cel ? '(abajo del juego)' : '(al costado del juego)'}, opción <b>Calidad</b>, y después «Aplicar y reiniciar».</div><div style="margin-top:6px">${ctrl}</div>
-      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button data-g="gfx">Ir a Gráficos</button><button data-g="${cel ? 'touch' : 'keys'}">${cel ? 'Ajustes táctiles' : 'Ir a Teclas'}</button><button data-g="ok">Entendido</button></div>`;
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button data-g="gfx">Ir a Gráficos</button><button data-g="${cel ? 'touch' : 'keys'}">${cel ? 'Controles táctiles' : 'Ir a Teclas'}</button><button data-g="ok">Entendido</button></div>`;
     // Debajo de la tarjeta de Jugar (se ve antes de jugar); si no está, arriba del juego.
     const play = document.getElementById('loaderPlay'), card = play && (play.closest('section, article, .card') || play.parentElement);
     if (card && card !== row && !row.contains(card)) card.after(g); else row.before(g);

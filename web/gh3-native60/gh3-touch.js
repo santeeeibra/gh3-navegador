@@ -4,6 +4,8 @@
 // Varios dedos a la vez, sostenidas y deslizamiento; liberar al cancelar, perder foco o redimensionar.
 // Salida: window.gh3Input.setTouch(trastes, botones) (gh3-input.js con soporte táctil); el mismo mando que teclado
 // y joystick, así GH3 juzga y puntúa igual. Se activa solo en pantallas táctiles; ?touch=1 lo fuerza, ?touch=0 lo apaga.
+// Claude 2026-10-13: bordes tenues siempre visibles, ajuste de visibilidad, márgenes seguros del iPhone, botón «Controles»,
+// cálculo de zonas reutilizable (gh3-touch-prueba.js lo usa antes de Jugar) y nada se escribe al mando mientras está apagado.
 (() => {
   const BTN = { up: 0x0001, down: 0x0002, start: 0x0010, back: 0x0020 };
   const STRUM_MS = 45, SWIPE_PX = 24;
@@ -18,51 +20,89 @@
   markDevice();
   const pointers = new Map();  // pointerId -> { role, fret, anchorY }
   let strumBits = 0, root = null, zones = null, enabled = false, lastKey = -1;
-  const st = { downs: 0, ups: 0, cancels: 0, strums: 0, maxPointers: 0, releases: {}, frets: 0, buttons: 0 };
+  // evMaxMs/evAvg: demora entre el toque (e.timeStamp) y la escritura al mando; mide si el hilo de la página está atrasado.
+  const st = { downs: 0, ups: 0, cancels: 0, strums: 0, maxPointers: 0, releases: {}, frets: 0, buttons: 0, evN: 0, evSumMs: 0, evMaxMs: 0, evLastMs: 0 };
   const T = window.gh3Touch = { stats: st, enabled: () => enabled };
-  const DEFAULTS = { offset: 0, width: 100, height: 18, auto: 1 };  // auto = tocar el color rasguea solo (Claude 2026-10-12)
+  // Colores y orden de los trastes de GH3 (verde, rojo, amarillo, azul, naranja). Los usa también gh3-touch-prueba.js.
+  const COLORS = ['#2ecc40', '#ff3b30', '#ffd60a', '#0a84ff', '#ff9500'], NAMES = ['Verde', 'Rojo', 'Amarillo', 'Azul', 'Naranja'];
+  T.COLORS = COLORS; T.NAMES = NAMES;
+  // auto = tocar el color rasguea solo (Claude 2026-10-12). alpha = visibilidad de los bordes en % (Claude 2026-10-13;
+  // 0 = invisibles pero activos). Misma clave v1: los ajustes viejos se conservan y alpha toma su valor inicial.
+  const DEFAULTS = { offset: 0, width: 100, height: 18, auto: 1, alpha: 45 };
   const STORAGE = 'gh3TouchZones.v1';
   let settings = { ...DEFAULTS }, panel, resizeObserver;
   const clamp = (v, lo, hi, fallback) => Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : fallback;
   function normalize(v = {}) {
-    return { offset: clamp(v?.offset, -20, 20, 0), width: clamp(v?.width, 60, 100, 100), height: clamp(v?.height, 8, 35, 18), auto: v?.auto === 0 ? 0 : 1 };
+    return { offset: clamp(v?.offset, -20, 20, 0), width: clamp(v?.width, 60, 100, 100), height: clamp(v?.height, 8, 35, 18), auto: v?.auto === 0 ? 0 : 1, alpha: clamp(v?.alpha, 0, 100, DEFAULTS.alpha) };
   }
   try { settings = normalize(JSON.parse(localStorage.getItem(STORAGE) || '{}')); } catch {}
   T.getSettings = () => ({ ...settings });
+  T.DEFAULTS = { ...DEFAULTS };
+  const listeners = new Set();
+  T.onSettings = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
   T.setSettings = (value) => {
-    releaseAll('settings'); settings = normalize({ ...settings, ...value });
+    if (enabled) releaseAll('settings');
+    settings = normalize({ ...settings, ...value });
     let saved = true;
     try { localStorage.setItem(STORAGE, JSON.stringify(settings)); } catch { saved = false; }
     syncSettings(); layout();
     if (panel) panel.querySelector('[role=status]').textContent = saved ? 'Guardado en este navegador.' : 'No se pudo guardar. Los ajustes duran esta sesión.';
+    for (const fn of listeners) try { fn({ ...settings }, saved); } catch {}
+    return saved;
   };
   T.resetSettings = () => T.setSettings(DEFAULTS);
+  T.strumHelp = () => settings.auto ? 'Rasgueo automático: con tocar el color alcanza.'
+    : 'Rasgueo manual: mantené el color y tocá o deslizá la zona RASGUEO (a la derecha) cuando la nota llega al aro.';
   function syncSettings() {
+    root?.style.setProperty('--gh3-edge', settings.alpha + '%');
     if (!panel) return;
     panel.querySelector('[name=auto]').checked = !!settings.auto; root?.classList.toggle('autoStrum', !!settings.auto);
-    for (const key of ['offset', 'width', 'height']) {
+    panel.querySelector('.help').textContent = 'Tocá el color cuando la nota llega al aro; mantenelo en las notas largas; varios dedos para acordes. ' + T.strumHelp();
+    for (const key of ['offset', 'width', 'height', 'alpha']) {
       panel.querySelector(`[name=${key}]`).value = settings[key];
       panel.querySelector(`[data-value=${key}]`).textContent = settings[key] + '%';
     }
   }
+  // Márgenes seguros (muesca, barra de inicio del iPhone). Se leen sólo al acomodar (no por cuadro).
+  let insetProbe = null;
+  T.insets = () => {
+    if (!document.body) return { top: 0, right: 0, bottom: 0, left: 0 };
+    if (!insetProbe) {
+      insetProbe = document.createElement('div');
+      insetProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+      document.body.appendChild(insetProbe);
+    }
+    const cs = getComputedStyle(insetProbe), px = (v) => parseFloat(v) || 0;
+    return { top: px(cs.paddingTop), right: px(cs.paddingRight), bottom: px(cs.paddingBottom), left: px(cs.paddingLeft) };
+  };
+  // Cálculo puro de las cinco zonas sobre la imagen visible del juego (box = x, y, w, h en px de pantalla).
+  // Los aros de la autopista original están en x = .34 + i·.08 y y = .885 de la imagen de 1280×720.
+  // Si la zona invade la barra de inicio o el borde, sube lo justo y conserva su tamaño (el aro queda dentro de la zona).
+  function computeZones(box, s = settings, view = { w: innerWidth, h: innerHeight }, inset = { top: 0, right: 0, bottom: 0, left: 0 }) {
+    const step = box.w * .08, zoneW = step * s.width / 100;
+    const lo = inset.top, hi = view.h - inset.bottom;
+    const zoneH = Math.min(hi - lo, Math.max(44, box.h * s.height / 100));
+    const cy = box.y + box.h * (.885 + s.offset / 100);
+    const top = Math.max(lo, Math.min(hi - zoneH, cy - zoneH / 2));
+    return [0, 1, 2, 3, 4].map((i) => {
+      const cx = box.x + box.w * (.34 + i * .08);
+      const left = Math.max(inset.left, Math.min(view.w - inset.right - zoneW, cx - zoneW / 2));
+      return { x: left, y: top, w: zoneW, h: zoneH, cx, cy };
+    });
+  }
   // object-fit: contain deja bandas negras. Usar la imagen visible, no la caja CSS.
+  function fitBox(rect, ratio) {
+    const w = Math.min(rect.width, rect.height * ratio), h = w / ratio;
+    return { x: rect.left + (rect.width - w) / 2, y: rect.top + (rect.height - h) / 2, w, h };
+  }
+  T.computeZones = computeZones; T.fitBox = fitBox;
   function layout() {
     if (!root) return;
     const canvas = document.getElementById('r5Canvas');
     const rect = canvas?.getBoundingClientRect();
-    let w = innerWidth, h = innerHeight, x = 0, y = 0;
-    if (rect?.width && rect?.height) {
-      const ratio = (canvas.width || 1280) / (canvas.height || 720);
-      w = Math.min(rect.width, rect.height * ratio); h = w / ratio;
-      x = rect.left + (rect.width - w) / 2; y = rect.top + (rect.height - h) / 2;
-    }
-    const step = w * .08, zoneW = step * settings.width / 100;
-    const zoneH = Math.min(innerHeight, Math.max(44, h * settings.height / 100));
-    const cy = y + h * (.885 + settings.offset / 100);
-    zones.frets.forEach((z, i) => {
-      const cx = x + w * (.34 + i * .08);
-      Object.assign(z.style, { left: Math.max(0, Math.min(innerWidth - zoneW, cx - zoneW / 2)) + 'px',
-        top: Math.max(0, Math.min(innerHeight - zoneH, cy - zoneH / 2)) + 'px', width: zoneW + 'px', height: zoneH + 'px' });
+    const box = rect?.width && rect?.height ? fitBox(rect, (canvas.width || 1280) / (canvas.height || 720)) : { x: 0, y: 0, w: innerWidth, h: innerHeight };
+    computeZones(box, settings, { w: innerWidth, h: innerHeight }, T.insets()).forEach((r, i) => {
+      Object.assign(zones.frets[i].style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
     });
     if (canvas && !resizeObserver) { resizeObserver = new ResizeObserver(() => { releaseAll('resize'); layout(); }); resizeObserver.observe(canvas); }
   }
@@ -78,10 +118,11 @@
 #gh3Touch .z{position:absolute;pointer-events:auto;touch-action:none;box-sizing:border-box;border:2px solid rgba(255,255,255,.35);border-radius:14px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;opacity:var(--gh3-touch-opacity,.75)}
 #gh3Touch .frets{position:absolute;inset:0;pointer-events:none}
 #gh3Touch .frets .z{position:absolute;border-radius:10px}
-#gh3Touch .f0{--c:#2ecc40}#gh3Touch .f1{--c:#ff3b30}#gh3Touch .f2{--c:#ffd60a}#gh3Touch .f3{--c:#0a84ff}#gh3Touch .f4{--c:#ff9500}
-#gh3Touch .frets .z{border:0;background:transparent}
+${COLORS.map((c, i) => `#gh3Touch .f${i}{--c:${c}}`).join('')}
+/* Claude 2026-10-13: borde tenue del color siempre visible (sin relleno que tape notas); al tocar, relleno y borde pleno al instante. */
+#gh3Touch .frets .z{border:2px solid color-mix(in srgb,var(--c) var(--gh3-edge,45%),transparent);background:transparent;opacity:1}
 html body.gh3Play #gh3Touch .frets .z:not(.on){background:transparent}
-#gh3Touch .frets .z.on{background:color-mix(in srgb,var(--c) 35%,transparent);opacity:1}
+#gh3Touch .frets .z.on{background:color-mix(in srgb,var(--c) 35%,transparent);border-color:var(--c);opacity:1}
 #gh3Touch .strum{right:calc(env(safe-area-inset-right) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);width:20vw;height:50dvh}
 #gh3Touch .star{right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);width:20vw;height:calc(42dvh - 32px);font-size:22px}
 #gh3Touch .pause{display:none}
@@ -116,16 +157,18 @@ body.gh3TouchActive.gh3Play{overscroll-behavior:none}
   function build() {
     const style = document.createElement('style'); style.id = 'gh3TouchStyle'; style.textContent = css; document.head.appendChild(style);
     root = document.createElement('div'); root.id = 'gh3Touch';
-    root.innerHTML = '<div class="frets">' + [0, 1, 2, 3, 4].map((i) => `<div class="z f${i}" data-role="fret" data-fret="${i}" aria-label="${['Verde','Rojo','Amarillo','Azul','Naranja'][i]}"><span>${i + 1}</span></div>`).join('') + '</div>' +
+    root.innerHTML = '<div class="frets">' + [0, 1, 2, 3, 4].map((i) => `<div class="z f${i}" data-role="fret" data-fret="${i}" aria-label="${NAMES[i]}"><span>${i + 1}</span></div>`).join('') + '</div>' +
       '<div class="z strum" data-role="strum">RASGUEO<br>↑ ↓</div><div class="z star" data-role="star">★</div>' +
       '<div class="z pause" data-role="pause">❚❚</div><div class="rot">Girá el teléfono a horizontal para jugar</div>';
-    root.insertAdjacentHTML('beforeend', `<button class="nav back">◀ Volver</button><button class="nav start">Start</button><div class="dpad" aria-label="Cruceta">${[['up','▲','Arriba'],['left','◀','Izquierda'],['right','▶','Derecha'],['down','▼','Abajo']].map(([d,t,l])=>`<button class="${d}" data-d="${d}" aria-label="${l}">${t}</button>`).join('')}</div><button class="settings" aria-expanded="false" aria-controls="gh3TouchPanel">Ajustes táctiles</button>
-      <section class="panel" id="gh3TouchPanel" aria-label="Ajustes táctiles" hidden>
+    root.insertAdjacentHTML('beforeend', `<button class="nav back">◀ Volver</button><button class="nav start">Start</button><div class="dpad" aria-label="Cruceta">${[['up','▲','Arriba'],['left','◀','Izquierda'],['right','▶','Derecha'],['down','▼','Abajo']].map(([d,t,l])=>`<button class="${d}" data-d="${d}" aria-label="${l}">${t}</button>`).join('')}</div><button class="settings" aria-expanded="false" aria-controls="gh3TouchPanel">Controles</button>
+      <section class="panel" id="gh3TouchPanel" aria-label="Controles táctiles" hidden>
+        <b>Controles táctiles</b><p class="help"></p>
         <label class="chk"><input name="auto" type="checkbox"> Tocar el color rasguea solo</label>
         <b>Zonas de los cinco círculos</b>
         <label>Altura: arriba (−), círculos (0), debajo (+) <output data-value="offset"></output><input name="offset" type="range" min="-20" max="20" step="1"></label>
         <label>Ancho de cada zona <output data-value="width"></output><input name="width" type="range" min="60" max="100" step="1"></label>
         <label>Tamaño vertical <output data-value="height"></output><input name="height" type="range" min="8" max="35" step="1"></label>
+        <label>Visibilidad de los bordes (0 = invisibles, siguen funcionando) <output data-value="alpha"></output><input name="alpha" type="range" min="0" max="100" step="5"></label>
         <button class="reset">Restablecer</button> <button class="close">Listo</button><p role="status" aria-live="polite">Se guarda automáticamente en este navegador.</p>
       </section>`);
     document.body.appendChild(root);
@@ -183,6 +226,8 @@ body.gh3TouchActive.gh3Play{overscroll-behavior:none}
     const role = e.target.closest('[data-role]')?.dataset.role;
     if (!role || !enabled || !panel.hidden) return;
     if (e.cancelable) e.preventDefault();
+    const late = performance.now() - e.timeStamp;  // timeStamp y now comparten origen (timeOrigin)
+    if (late >= 0 && late < 10000) { st.evN++; st.evSumMs += late; st.evLastMs = late; if (late > st.evMaxMs) st.evMaxMs = late; }
     try { e.target.setPointerCapture(e.pointerId); } catch {}
     const p = { role, fret: role === 'fret' ? Number(e.target.closest('[data-fret]').dataset.fret) : -1, anchorY: e.clientY };
     pointers.set(e.pointerId, p); st.downs++; st.maxPointers = Math.max(st.maxPointers, pointers.size);
@@ -244,6 +289,8 @@ body.gh3TouchActive.gh3Play{overscroll-behavior:none}
     }
     const key = frets | (buttons << 5);
     if (key === lastKey) return;
+    // Apagado y sin nada apretado: no escribir al mando (la prueba previa y los ajustes no mandan entradas al juego).
+    if (!enabled && key === 0 && lastKey <= 0) { lastKey = 0; return; }
     lastKey = key;
     window.gh3Input?.setTouch?.(frets, buttons);
   }
