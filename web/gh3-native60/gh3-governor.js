@@ -267,6 +267,7 @@
           preparacionMs: r(meas.prepEwma), gpuMs: r(G.gpuMs), workerMs: r(G.workerMs), escala: G.scale, memoriaVisualMiB: r(M.visualMiB), presupuestoMiB: memBudget,
           swapsSalteados: ctl ? Atomics.load(ctl, CTRL.GOV_SKIPPED) : null, descartesPorOcupado: ctl ? Atomics.load(ctl, CTRL.BUSY_DROPS) : null, soloPista: ctl ? Atomics.load(ctl, CTRL.ROAD_ONLY) === 1 : null,
           escenaDiferida: ctl ? Atomics.load(ctl, CTRL.SCENE_DEFERRED) : null, gpuPerdida: G.lost,
+          formatosGpu: root.d4?.songRenderer?.temporal?.compression || null,
           latenciaJuego: root.gh3Input?.latencyReport?.() || null,
           demoraToque: root.gh3Touch?.stats?.evN ? { toques: root.gh3Touch.stats.evN, promedioMs: r(root.gh3Touch.stats.evSumMs / root.gh3Touch.stats.evN), maxMs: r(root.gh3Touch.stats.evMaxMs) } : null,
         },

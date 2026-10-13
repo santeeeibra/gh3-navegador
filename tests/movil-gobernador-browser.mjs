@@ -41,7 +41,7 @@ window.start = async (cpuLevel) => {
   const transport = new SharedArrayBuffer(4), st = window.st = {ctl, frames: 0, errors: [], stats: null};
   const port = {onmessage: null, start() {}, postMessage(m) { if (m.type !== 'frame') return; st.frames++; const l = new Int32Array(m.latch); Atomics.add(l, 1, 1); Atomics.store(l, 0, 0); }};
   const send = new Function('postMessage', 'OffscreenCanvas', 'let onmessage;\\n' + code + '\\nreturn (d) => onmessage({data: d});')((m) => {
-    if (m.type === 'error') st.errors.push(m.error); if (m.type === 'stats') st.stats = m.gpu; if (m.type === 'ready') st.ready = true; }, FakeCanvas);
+    if (m.type === 'error') st.errors.push(m.error); if (m.type === 'stats') { st.stats = m.gpu; st.temporal = m.temporal; } if (m.type === 'ready') st.ready = true; }, FakeCanvas);
   send({type: 'init', shaders, presentation: board, transport, port, sceneMotion: false});
   while (!st.ready && !st.errors.length) await new Promise((r) => setTimeout(r, 20));
   let seq = 0;
@@ -94,6 +94,8 @@ try {
     await page.evaluate(() => Atomics.store(st.ctl, 5, 2)); await settle(page, 1300);
     const s = await page.evaluate(() => st.stats);
     check('A perilla de memoria 2 → presupuesto de texturas GPU 24 MiB', s?.textureBudgetBytes === 24 << 20, s && s.textureBudgetBytes);
+    const formats = await page.evaluate(() => st.temporal?.compression);
+    check('A informa formatos comprimidos reales del adaptador', Array.isArray(formats) && formats.includes('texture-compression-bc'), formats);
     await page.evaluate(() => stop());
     // Bajo presión de CPU desde el inicio: la textura NUEVA de escena no se sube; la pista sí.
     await page.reload(); await page.waitForFunction(() => window.start); await page.evaluate(() => start(1)); await settle(page, 800); c = await ctl();

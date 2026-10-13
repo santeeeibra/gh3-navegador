@@ -21,7 +21,9 @@ onmessage=async({data:m})=>{
   if(m.type==='init'){
    shaders=m.shaders;sceneMotion=m.sceneMotion;port=m.port;latch=new Int32Array(m.presentation);transport=new Int32Array(m.transport);
    const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw Error('No WebGPU adapter');
-   const bc=adapter.features.has('texture-compression-bc');device=await adapter.requestDevice({requiredFeatures:bc?['texture-compression-bc']:[]});
+   const bc=adapter.features.has('texture-compression-bc');
+   // Formatos comprimidos que el adaptador soporta de verdad (para medir en el iPhone; ASTC/ETC2 todavía no se usan).
+   state.compression=['texture-compression-bc','texture-compression-etc2','texture-compression-astc'].filter(f=>adapter.features.has(f));device=await adapter.requestDevice({requiredFeatures:bc?['texture-compression-bc']:[]});
    device.addEventListener('uncapturederror',e=>stop(e.error));device.lost.then(e=>stop(Error('GPU lost: '+e.message)));
    renderer=await createLiveSongRenderer(device,shaders,{prepareTexture:t=>sceneTexture(t,bc)});
    canvas=new OffscreenCanvas(1280,720);context=canvas.getContext('webgpu');context.configure({device,format:'rgba8unorm',usage:GPUTextureUsage.COPY_DST|GPUTextureUsage.RENDER_ATTACHMENT,alphaMode:'opaque'});

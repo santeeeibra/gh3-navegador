@@ -722,6 +722,7 @@
         const adapter = await navigator.gpu.requestAdapter();
         if (!adapter) throw Error("No WebGPU adapter");
         const bc = adapter.features.has("texture-compression-bc");
+        state.compression = ["texture-compression-bc", "texture-compression-etc2", "texture-compression-astc"].filter((f) => adapter.features.has(f));
         device = await adapter.requestDevice({ requiredFeatures: bc ? ["texture-compression-bc"] : [] });
         device.addEventListener("uncapturederror", (e) => stop(e.error));
         device.lost.then((e) => stop(Error("GPU lost: " + e.message)));
