@@ -13,6 +13,20 @@ traspaso: leerlo primero, junto con `REGLAS.md` y
 - Pruebas en verde: `npm test` 54/54, `npm run test:movil-tactil` 74/74,
   `npm run test:movil-gobernador` 27/27.
 
+## Actualización (misma fecha, después del /clear)
+
+- Hecho el paso 1 de la propuesta (herramienta de medición), con OK de Santi:
+  `tools/r5-native60/compare-gov.mjs` (compara dos corridas),
+  `run-song.mjs` guarda `report.governor` (resumen del gobernador) y
+  `tools/r5-native60/measure-gov.mjs` (un comando: observa → activo → tabla).
+  Pruebas en `tests/movil-medir.test.mjs`; `npm test` 62/62.
+- Guía para Santi en casa: `docs/nube/MEDIR-GOBERNADOR-EN-PC.md`.
+- Santi pidió publicar en main para probar en el celu: NO se hizo, porque
+  Vercel arma `/gh3` sólo con los datos del juego (no están en GitHub) y
+  `web/gh3-native60` no entra en el build; no cambiaba nada en el celu.
+- Próximo: esperar los `comparacion.md` de Santi (pista y escena) y calibrar.
+  Después, si da el OK, el paso 2 (precarga con presupuesto).
+
 ## Cómo trabajar en la nube (aprendido)
 
 - Primero `npm ci` (sin eso falla `tests/online.test.mjs`).
