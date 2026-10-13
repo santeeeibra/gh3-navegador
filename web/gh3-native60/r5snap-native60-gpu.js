@@ -830,11 +830,11 @@
   var policyKey = -1;
   var policy = rendererConfig(0, 0, 0);
   function applyPolicy() {
-    const b = board(), cpu = knob(b, C.CPU), gpu = knob(b, C.GPU), mem = knob(b, C.MEM), key = cpu | gpu << 2 | mem << 4;
+    const b = board(), cpu = knob(b, C.CPU), gpu = knob(b, C.GPU), mem = knob(b, C.MEM), keep = b && Atomics.load(b, C.STAGE) === 2 ? 1 : 0, key = cpu | gpu << 2 | mem << 4 | keep << 6;
     if (key !== policyKey) {
       policyKey = key;
-      policy = rendererConfig(cpu, gpu, mem);
-      state.policy = { cpu, gpu, mem };
+      policy = { ...rendererConfig(cpu, gpu, mem), keepTextures: !!keep };
+      state.policy = { cpu, gpu, mem, keepTextures: !!keep };
     }
     if (key !== state.appliedKey || renderer.stats.scale !== policy.scale) {
       renderer.configure(policy);
@@ -929,7 +929,7 @@
         const active = new Set(current.inputs.flatMap((i) => i.textures.map((t) => t.texture.key))), retired = [];
         let bytes = 0;
         for (const k of known.values()) bytes += k.texture.data?.byteLength || 0;
-        for (const [key, k] of [...known].sort((a, b) => a[1].last - b[1].last)) if (!active.has(key) && (sourceSerial - k.last > 120 || bytes > policy.cpuTextureBytes)) {
+        for (const [key, k] of [...known].sort((a, b) => a[1].last - b[1].last)) if (!active.has(key) && (sourceSerial - k.last > 120 && !policy.keepTextures || bytes > policy.cpuTextureBytes)) {
           bytes -= k.texture.data?.byteLength || 0;
           known.delete(key);
           retired.push(key);

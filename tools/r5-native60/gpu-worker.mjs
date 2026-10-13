@@ -10,10 +10,12 @@ const state={rendered:0,snapshots:0,stale:0,coalesced:0,textureCPUBytes:0,target
 // latch = tablero compartido (control.mjs). Un consumidor viejo manda 8 bytes: sin telemetría ni gobernador.
 const board=()=>latch&&latch.length>C.WORKER_US?latch:null;
 // Gobernador: perillas CPU/GPU/memoria → escala, presupuestos y texturas diferidas. Sólo se recalcula al cambiar.
+// Con la canción en juego (CTRL.STAGE = 2) las texturas sin usar no se tiran por tiempo, sólo por presupuesto: así no
+// se vuelven a convertir y subir en pleno juego (llamas, Star Power). Claude 2026-10-13, precarga.
 let policyKey=-1,policy=rendererConfig(0,0,0);
 function applyPolicy(){
- const b=board(),cpu=knob(b,C.CPU),gpu=knob(b,C.GPU),mem=knob(b,C.MEM),key=cpu|gpu<<2|mem<<4;
- if(key!==policyKey){policyKey=key;policy=rendererConfig(cpu,gpu,mem);state.policy={cpu,gpu,mem};}
+ const b=board(),cpu=knob(b,C.CPU),gpu=knob(b,C.GPU),mem=knob(b,C.MEM),keep=b&&Atomics.load(b,C.STAGE)===2?1:0,key=cpu|gpu<<2|mem<<4|keep<<6;
+ if(key!==policyKey){policyKey=key;policy={...rendererConfig(cpu,gpu,mem),keepTextures:!!keep};state.policy={cpu,gpu,mem,keepTextures:!!keep};}
  if(key!==state.appliedKey||renderer.stats.scale!==policy.scale){renderer.configure(policy);state.appliedKey=key;}
 }
 function stop(error){clearTimeout(timer);if(transport)Atomics.store(transport,0,0);const b=board();if(b)Atomics.store(b,C.GPU_LOST,1);postMessage({type:'error',error:error?.stack||String(error)});}
@@ -61,7 +63,7 @@ async function tick(){
    const prepareAt=performance.now();temporal=createTemporalFrame(current.inputs,shaders,{previous:previous?.inputs,intervalMs:interval,sceneMotion});state.lastMotionPrepareMs=performance.now()-prepareAt;
    const active=new Set(current.inputs.flatMap(i=>i.textures.map(t=>t.texture.key))),retired=[];
    let bytes=0;for(const k of known.values())bytes+=k.texture.data?.byteLength||0;
-   for(const [key,k] of [...known].sort((a,b)=>a[1].last-b[1].last))if(!active.has(key)&&(sourceSerial-k.last>120||bytes>policy.cpuTextureBytes)){bytes-=k.texture.data?.byteLength||0;known.delete(key);retired.push(key);}
+   for(const [key,k] of [...known].sort((a,b)=>a[1].last-b[1].last))if(!active.has(key)&&((sourceSerial-k.last>120&&!policy.keepTextures)||bytes>policy.cpuTextureBytes)){bytes-=k.texture.data?.byteLength||0;known.delete(key);retired.push(key);}
    state.textureCPUBytes=bytes;if(retired.length)postMessage({type:'retired',keys:retired});
   }
   state.pipelinePending=!!queued&&!queued.pipelineReady;

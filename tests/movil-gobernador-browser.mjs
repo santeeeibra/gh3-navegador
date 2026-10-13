@@ -47,7 +47,7 @@ window.start = async (cpuLevel, stage = 0, snapshots = true) => {
   while (!st.ready && !st.errors.length) await new Promise((r) => setTimeout(r, 20));
   let seq = 0;
   window.go = () => st.timer = setInterval(() => {
-    const inputs = [draw(-1, 0, tex('pista', [255, 0, 0, 255], false), true, 0), draw(0.2, 1, tex('escena', window.sceneColor || [0, 0, 255, 255], true, window.sceneRev || 1), false, 1)];
+    const inputs = [draw(-1, 0, tex('pista', [255, 0, 0, 255], false), true, 0), ...(window.hideScene ? [] : [draw(0.2, 1, tex('escena', window.sceneColor || [0, 0, 255, 255], true, window.sceneRev || 1), false, 1)])];
     Atomics.store(new Int32Array(transport), 0, 1);
     send({type: 'snapshot', inputs, info: {seq: ++seq}, at: performance.timeOrigin + performance.now(), timing: {}});
   }, 50);
@@ -137,6 +137,13 @@ try {
     await page.evaluate(() => { Atomics.store(st.ctl, 26, 2); go(); }); await settle(page, 1000);
     c = await ctl();
     check('C sesión 2 en canción: no compila nada en juego y dibuja bien', c.songBuilds === 0 && c.frames > 5 && near(await page.evaluate(() => px(320, 360)), [255, 0, 0]) && !c.errors.length, c);
+    // Texturas: la escena desaparece 2,5 s (> 120 cuadros) y vuelve. En canción no se tira ni se vuelve a subir; en menús sí.
+    const tx = () => page.evaluate(() => ({uploads: st.stats?.textureUploads, evictions: st.stats?.textureEvictions || 0}));
+    const hideAndShow = async () => { await page.evaluate(() => { window.hideScene = true; }); await settle(page, 2500); await page.evaluate(() => { window.hideScene = false; }); await settle(page, 1300); };
+    const t0 = await tx(); await hideAndShow(); const t1 = await tx();
+    check('C en canción: textura sin usar 2,5 s no se tira ni se vuelve a subir', t1.evictions === t0.evictions && t1.uploads === t0.uploads && near(await page.evaluate(() => px(1000, 360)), [0, 0, 255]), {t0, t1});
+    await page.evaluate(() => Atomics.store(st.ctl, 26, 1)); await hideAndShow(); const t2 = await tx();
+    check('C en cargas/menús: se tira por tiempo como antes y se vuelve a subir al reaparecer', t2.evictions > t1.evictions && t2.uploads > t1.uploads && near(await page.evaluate(() => px(1000, 360)), [0, 0, 255]), {t1, t2});
     await page.evaluate(() => stop());
   }
 
