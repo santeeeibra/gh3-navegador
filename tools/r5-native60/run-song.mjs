@@ -83,6 +83,8 @@ try{
  await page.locator('#r5Canvas').screenshot({path:out+'/song-final.png'});report.ok=true;
 }catch(e){report.error=e.stack;report.ok=false;process.exitCode=1;try{const pg=browser?.pages()[0];if(pg){const L=await pg.evaluate(()=>d4.log);fs.writeFileSync(out+'/runtime.log',L.join(String.fromCharCode(10)));}}catch{}}
 finally{report.stepsAt=report.steps.map(x=>Date.parse(x.at)-(report.t0||Date.parse(report.started)));
+ // Claude 2026-10-13: resumen del gobernador (gh3Governor.summary) para compare-gov.mjs; también si la corrida falló.
+ try{report.governor=await browser?.pages()[0]?.evaluate(()=>window.gh3Governor?.summary?.()??null)??null;}catch(e){report.governorError=e.message;}
  await browser?.close();if(!process.env.KEEP_PROFILE)try{fs.rmSync(out+'/edge-profile',{recursive:true,force:true});}catch{}if(server)await new Promise(r=>server.close(r));
  if(reserved&&ownTurn())fs.writeFileSync(turn,`# Turno de pruebas del juego (uno por vez)\nEstado: LIBRE\nQuién: ${operator}\nQué: otros temas, ${song}; ${report.ok?'prueba terminada':'resultado pendiente/fallo'}\nFin: ${new Date().toISOString()}\n`);
  write();console.log(JSON.stringify({out,song,ok:report.ok,error:report.error,final:report.final&&{clock:report.final.clock,presented:report.final.presented,strums:report.final.bot?.strums},audio:report.audioSignal}));
