@@ -33,6 +33,10 @@ export const C = Object.freeze({
   BUF_KIB: 23,       // GPU: buffers (arenas) en la GPU, KiB
   VERSION: 24,       // consumidor: CONTROL_VERSION cuando el SAB tiene este formato
   WORKER_US: 25,     // GPU: costo total del cuadro en el worker (CPU del worker + espera GPU), promedio móvil, µs
+  STAGE: 26,         // página→GPU: 0 sin dato, 1 cargas/menús, 2 canción en juego (señales gh3stage). Claude 2026-10-13, precarga
+  PRELOADED: 27,     // GPU: pipelines precompilados fuera del juego (recordados de sesiones anteriores)
+  PRELOAD_PENDING: 28,// GPU: pipelines recordados que faltan precompilar
+  SONG_BUILDS: 29,   // GPU: pipelines que hubo que compilar con la canción en juego (lo que la precarga quiere llevar a 0)
 });
 export function createControl() {
   const sab = new SharedArrayBuffer(CONTROL_BYTES), i32 = new Int32Array(sab);

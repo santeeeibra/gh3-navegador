@@ -16,7 +16,8 @@
   // Índices del tablero: copia de tools/r5-native60/control.mjs (la prueba verifica que coincidan).
   const CTRL = Object.freeze({ LATCH: 0, PRESENTED: 1, LEVEL: 2, CPU: 3, GPU: 4, MEM: 5, POLICY_SEQ: 6, ACTIVE: 7, SWAPS: 8, SNAPSHOTS: 9,
     GOV_SKIPPED: 10, PREP_US: 11, PREP_MAX_US: 12, BUSY_DROPS: 13, GPU_US: 14, GPU_MAX_US: 15, TEX_GPU_KIB: 16, TEX_CPU_KIB: 17,
-    SCALE_PCT: 18, RENDERED: 19, GPU_LOST: 20, SCENE_DEFERRED: 21, ROAD_ONLY: 22, BUF_KIB: 23, VERSION: 24, WORKER_US: 25 });
+    SCALE_PCT: 18, RENDERED: 19, GPU_LOST: 20, SCENE_DEFERRED: 21, ROAD_ONLY: 22, BUF_KIB: 23, VERSION: 24, WORKER_US: 25,
+    STAGE: 26, PRELOADED: 27, PRELOAD_PENDING: 28, SONG_BUILDS: 29 });
   // SAB de telemetría del worklet (index.html).
   const TEL = Object.freeze({ LAG: 0, UNDERRUNS: 1, SILENT: 2, SKIPS: 3, BLOCKS: 4, RATE_PPM: 5, MIN_LAG: 6, W: 7, STRETCH: 8, TARGET: 9, PLAYING: 10, PLAYED: 11 });
   const LEVELS = ['normal', 'protegido', 'mínimo'];
@@ -162,6 +163,7 @@
   const params = new URLSearchParams(location.search), qv = params.get('gov');
   const mobile = !!(root.gh3Quality?.mobile ?? root.gh3IsMobile);
   const mode = qv === '0' ? 'apagado' : qv === '1' ? 'activo' : qv === 'observa' ? 'observa' : mobile ? 'activo' : 'observa';
+  let stage = 0;  // 0 sin dato, 1 cargas/menús, 2 canción en juego (CTRL.STAGE)
   let saved = null; try { saved = JSON.parse(localStorage.getItem('gh3gov.cfg') || 'null'); } catch {}
   const gov = createGovernor(saved || undefined);
   const memBudget = mobile ? gov.config.mem.budgetMiBMobile : gov.config.mem.budgetMiBPc;
@@ -249,7 +251,7 @@
   const api = root.gh3Governor = {
     mode, core: gov,
     attachAudio(sab, opts = {}) { tel = new Int32Array(sab); sr = root.r6ctx?.sampleRate || 48000; totals.underrunsAtAttach = Atomics.load(tel, TEL.UNDERRUNS); prev.blocks = -1; api.band = opts.band || 0; start(); },
-    attachControl(sab) { const i = new Int32Array(sab); if (i.length > CTRL.VERSION && Atomics.load(i, CTRL.VERSION) >= 1) { ctl = i; if (mode !== 'activo') writeBoard(ctl, gov.out, false); start(); } else api.oldConsumer = true; },
+    attachControl(sab) { const i = new Int32Array(sab); if (i.length > CTRL.VERSION && Atomics.load(i, CTRL.VERSION) >= 1) { ctl = i; if (stage) Atomics.store(ctl, CTRL.STAGE, stage); if (mode !== 'activo') writeBoard(ctl, gov.out, false); start(); } else api.oldConsumer = true; },
     anticipate(why, ms) { gov.anticipate(1, ms, why, performance.now()); },
     setConfig(over, persist) { gov.setConfig(over); if (persist) try { localStorage.setItem('gh3gov.cfg', JSON.stringify(over)); } catch {} },
     tick,
@@ -267,6 +269,7 @@
           preparacionMs: r(meas.prepEwma), gpuMs: r(G.gpuMs), workerMs: r(G.workerMs), escala: G.scale, memoriaVisualMiB: r(M.visualMiB), presupuestoMiB: memBudget,
           swapsSalteados: ctl ? Atomics.load(ctl, CTRL.GOV_SKIPPED) : null, descartesPorOcupado: ctl ? Atomics.load(ctl, CTRL.BUSY_DROPS) : null, soloPista: ctl ? Atomics.load(ctl, CTRL.ROAD_ONLY) === 1 : null,
           escenaDiferida: ctl ? Atomics.load(ctl, CTRL.SCENE_DEFERRED) : null, gpuPerdida: G.lost,
+          precarga: ctl ? { hechas: Atomics.load(ctl, CTRL.PRELOADED), pendientes: Atomics.load(ctl, CTRL.PRELOAD_PENDING), compiladasEnJuego: Atomics.load(ctl, CTRL.SONG_BUILDS) } : null,
           formatosGpu: root.d4?.songRenderer?.temporal?.compression || null,
           latenciaJuego: root.gh3Input?.latencyReport?.() || null,
           demoraToque: root.gh3Touch?.stats?.evN ? { toques: root.gh3Touch.stats.evN, promedioMs: r(root.gh3Touch.stats.evSumMs / root.gh3Touch.stats.evN), maxMs: r(root.gh3Touch.stats.evMaxMs) } : null,
@@ -280,6 +283,8 @@
   // Protección anticipada: carga del nivel, inicio de canción y vuelta desde segundo plano.
   root.addEventListener('gh3stage', (e) => {
     const s = e.detail?.stage, a = gov.config.anticipate, now = performance.now();
+    // Precarga (worker GPU): compila lo recordado sólo fuera del tramo de juego.
+    if (s) { stage = s === 'songPlaying' ? 2 : 1; if (ctl) Atomics.store(ctl, CTRL.STAGE, stage); }
     if (s === 'loadStart' || s === 'levelConfirmed') gov.anticipate(1, a.loadMaxMs, 'carga del nivel', now);
     if (s === 'songPlaying') gov.anticipate(1, a.songMs, 'inicio de canción', now, true);
   });
