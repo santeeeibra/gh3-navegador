@@ -301,7 +301,7 @@
   }
   function createTemporalFrame(inputs, shaders2, { previous = null, intervalMs = 0, sceneMotion: sceneMotion2 = false } = {}) {
     const dirty = /* @__PURE__ */ new Map(), working = inputs.map((i) => ({ ...i, assets: { ...i.assets } }));
-    const board = inputs.find((i) => i.manifest.vs === BOARD), table = board && boardTable(board);
+    const board2 = inputs.find((i) => i.manifest.vs === BOARD), table = board2 && boardTable(board2);
     const slots = (id) => new Map(shaders2[id].constants.map((c, i) => [c, i * 16]));
     const maps = /* @__PURE__ */ new Map(), map = (id) => {
       if (!maps.has(id)) maps.set(id, slots(id));
@@ -311,7 +311,7 @@
       const at = map(i.manifest.vs).get(c);
       return at === void 0 ? 0 : view(i.assets["float-vs.bin"]).getFloat32(at + component * 4, true);
     };
-    const speed = board ? -constant(board, 4) : 0;
+    const speed = board2 ? -constant(board2, 4) : 0;
     const prior = /* @__PURE__ */ new Map(), occurrences = /* @__PURE__ */ new Map();
     for (const i of previous || []) {
       const key = i.manifest.identity || i.manifest.vs + "/" + i.manifest.ps, n = occurrences.get(key) || 0;
@@ -403,7 +403,7 @@
       lastDt = dt;
       return dirty;
     }
-    return { inputs: working, animate, table, speed, timeMs: board ? constant(board, 155, 3) * 1e3 : null, planCount: plans.length, scenePlanCount: plans.filter((p) => p.scene).length };
+    return { inputs: working, animate, table, speed, timeMs: board2 ? constant(board2, 155, 3) * 1e3 : null, planCount: plans.length, scenePlanCount: plans.filter((p) => p.scene).length };
   }
 
   // tools/r5-native60/cadence.mjs
@@ -525,6 +525,70 @@
     return { ...u, width, height, bytesPerRow: width * channels, rowsPerImage: height, data };
   }
 
+  // tools/r5-native60/control.mjs
+  var C = Object.freeze({
+    LATCH: 0,
+    // GPU→página: 1 = hay un bitmap en camino (un cuadro en vuelo)
+    PRESENTED: 1,
+    // página: cuadros presentados
+    LEVEL: 2,
+    // página→todos: estado del gobernador 0 normal, 1 protegido, 2 mínimo
+    CPU: 3,
+    // página→consumidor/GPU: nivel de recorte de CPU (captura, conversiones)
+    GPU: 4,
+    // página→GPU: nivel de recorte de GPU (escala 1280×720 / 960×540 / 640×360)
+    MEM: 5,
+    // página→GPU: nivel de recorte de memoria (presupuestos de texturas)
+    POLICY_SEQ: 6,
+    // página: se incrementa en cada cambio de política
+    ACTIVE: 7,
+    // página: 1 = el gobernador actúa; 0 = sólo observa (las perillas quedan en 0)
+    SWAPS: 8,
+    // consumidor: cuadros del juego (swaps) recibidos = ritmo de la simulación visible
+    SNAPSHOTS: 9,
+    // consumidor: snapshots preparados y enviados al worker GPU
+    GOV_SKIPPED: 10,
+    // consumidor: swaps salteados por el gobernador ANTES de leer memoria del juego
+    PREP_US: 11,
+    // consumidor: costo del último snapshot (lectura+preparación+copia), µs
+    PREP_MAX_US: 12,
+    // consumidor: máximo desde la última lectura de la página (la página lo pone en 0)
+    BUSY_DROPS: 13,
+    // consumidor: swaps descartados porque el worker GPU seguía ocupado con el anterior
+    GPU_US: 14,
+    // GPU: espera de la GPU por cuadro (onSubmittedWorkDone), promedio móvil, µs
+    GPU_MAX_US: 15,
+    // GPU: máximo desde la última lectura de la página
+    TEX_GPU_KIB: 16,
+    // GPU: texturas residentes en la GPU, KiB
+    TEX_CPU_KIB: 17,
+    // GPU: copias de texturas en el worker, KiB
+    SCALE_PCT: 18,
+    // GPU: escala de render aplicada ×100
+    RENDERED: 19,
+    // GPU: cuadros dibujados
+    GPU_LOST: 20,
+    // GPU: 1 = dispositivo perdido o error fatal
+    SCENE_DEFERRED: 21,
+    // GPU: dibujos de escena omitidos por no convertir texturas nuevas bajo presión
+    ROAD_ONLY: 22,
+    // consumidor: 1 = el último snapshot fue sólo pista/notas/colas/HUD
+    BUF_KIB: 23,
+    // GPU: buffers (arenas) en la GPU, KiB
+    VERSION: 24,
+    // consumidor: CONTROL_VERSION cuando el SAB tiene este formato
+    WORKER_US: 25
+    // GPU: costo total del cuadro en el worker (CPU del worker + espera GPU), promedio móvil, µs
+  });
+  function ewmaStore(i32, index, valueUs, alpha = 0.2) {
+    const prev = Atomics.load(i32, index), v = Math.max(0, Math.min(2e9, Math.round(valueUs)));
+    Atomics.store(i32, index, prev ? Math.round(prev + (v - prev) * alpha) : v);
+  }
+  function maxStore(i32, index, valueUs) {
+    const v = Math.max(0, Math.min(2e9, Math.round(valueUs)));
+    if (v > Atomics.load(i32, index)) Atomics.store(i32, index, v);
+  }
+
   // tools/r5-native60/gpu-worker.mjs
   var renderer;
   var canvas;
@@ -545,9 +609,12 @@
   var lastReport = 0;
   var sourceSerial = 0;
   var state = { rendered: 0, snapshots: 0, stale: 0, coalesced: 0, textureCPUBytes: 0, targetHz: 60, maxGPUFramesInFlight: 1, directPort: true, originalShaders: true };
+  var board = () => latch && latch.length > C.WORKER_US ? latch : null;
   function stop(error) {
     clearTimeout(timer);
     if (transport) Atomics.store(transport, 0, 0);
+    const b = board();
+    if (b) Atomics.store(b, C.GPU_LOST, 1);
     postMessage({ type: "error", error: error?.stack || String(error) });
   }
   onmessage = async ({ data: m }) => {
@@ -643,7 +710,18 @@
           const dt = fresh ? 0 : Math.max(0, Math.min(100, age)) / 1e3;
           const animateAt = performance.now(), dirty = temporal.animate(dt);
           state.lastAnimateMs = performance.now() - animateAt;
-          const gpu = await renderer.render(temporal.inputs, context, { reuse: !fresh, dirty });
+          const frameAt = performance.now(), gpu = await renderer.render(temporal.inputs, context, { reuse: !fresh, dirty });
+          const b = board();
+          if (b) {
+            ewmaStore(b, C.GPU_US, gpu.gpuWaitMs * 1e3);
+            maxStore(b, C.GPU_MAX_US, gpu.gpuWaitMs * 1e3);
+            ewmaStore(b, C.WORKER_US, (performance.now() - frameAt) * 1e3);
+            Atomics.add(b, C.RENDERED, 1);
+            Atomics.store(b, C.TEX_GPU_KIB, (gpu.residentTextureBytes || 0) >> 10);
+            Atomics.store(b, C.TEX_CPU_KIB, state.textureCPUBytes >> 10);
+            Atomics.store(b, C.BUF_KIB, (gpu.bufferBytes || 0) >> 10);
+            Atomics.store(b, C.SCALE_PCT, Math.round((gpu.scale || 1) * 100));
+          }
           state.rendered++;
           state.deltaMs = dt * 1e3;
           state.sourceAgeMs = age;

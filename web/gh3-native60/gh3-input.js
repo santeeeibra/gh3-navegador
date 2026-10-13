@@ -37,6 +37,19 @@
   let i32 = null, f64 = null;
   const kb = new Set();
   const st = { buttons: 0, triggers: 0, axes: [0, 0, 0, 0], source: 0, writes: 0, pad: null, mapping: '' };
+  // Claude 2026-10-13: latencia escritura→lectura del juego. El juego pone en 0 [10] al leer el mando (g1e_input.cpp,
+  // latch.exchange), así que el tiempo hasta que desaparecen los bits apretados es lo que tardó en verlos. Resolución:
+  // la consulta de 8 ms de abajo. Sin allocations: anillo fijo de 64 muestras; percentiles sólo al pedir el informe.
+  const latRing = new Float64Array(64); let pendBits = 0, pendAt = 0;
+  st.lat = { n: 0, lastMs: 0, maxMs: 0, ewmaMs: 0, pending: 0 };
+  function checkLatency() {
+    if (!pendBits || !i32) return;
+    const now = performance.now();
+    if (Atomics.load(i32, 10) & pendBits) { st.lat.pending = now - pendAt; return; }
+    const ms = now - pendAt, L = st.lat;
+    latRing[L.n % 64] = ms; L.n++; L.lastMs = ms; L.pending = 0; if (ms > L.maxMs) L.maxMs = ms; L.ewmaMs = L.n === 1 ? ms : L.ewmaMs + (ms - L.ewmaMs) * 0.2;
+    pendBits = 0;
+  }
   const G = window.gh3Input = { stats: st, attached: false };
 
   const ax = (v) => Math.max(-32768, Math.min(32767, Math.round((Math.abs(v) < 0.08 ? 0 : v) * 32767)));
@@ -54,6 +67,7 @@
   // Canción: GH3 con mando común usa verde LT, rojo LB, amarillo RB, azul RT, naranja A (comprobado con imagen
   // en el nativo). Si la página define G.songMode() y devuelve true, los trastes del teclado van a ese esquema.
   function update() {
+    checkLatency();
     let kbBits = 0, kbTr = 0;
     const song = !!(G.songMode && G.songMode());
     for (const k of kb) {
@@ -79,7 +93,7 @@
     Object.assign(st, { buttons, triggers: p.tr, axes: p.axes, source });
     if (i32) {
       const pressed = buttons & ~(st.prev | 0);
-      if (pressed) Atomics.or(i32, 10, pressed);
+      if (pressed) { Atomics.or(i32, 10, pressed); if (!pendBits) { pendBits = pressed; pendAt = performance.now(); } }
       Atomics.store(i32, 1, buttons); Atomics.store(i32, 2, p.tr);
       for (let i = 0; i < 4; i++) Atomics.store(i32, 3 + i, p.axes[i]);
       Atomics.store(i32, 7, source);
@@ -103,6 +117,9 @@
   G.resetBinds = () => { binds = JSON.parse(JSON.stringify(DEFAULT_BINDS)); save(); };
   // Próxima tecla apretada = nueva tecla de esa acción (Escape cancela, Backspace borra el casillero).
   G.capture = (action, slot, done) => { capture = { action, slot, done }; };
+  // Informe (no se usa por cuadro): percentiles de las últimas 64 lecturas del juego.
+  G.latencyReport = () => { const n = Math.min(64, st.lat.n), a = Array.from(latRing.subarray(0, n)).sort((x, y) => x - y), q = (p) => n ? +a[Math.min(n - 1, Math.floor(p * n))].toFixed(1) : null;
+    return { muestras: st.lat.n, p50Ms: q(0.5), p95Ms: q(0.95), maxMs: +st.lat.maxMs.toFixed(1), resolucionMs: 8, que: 'escritura al mando → lectura del juego (no incluye la demora del toque ni el juicio)' }; };
   G.setTouch = (frets, bits) => { touchFrets = frets & 31; touchBits = bits & 0xFFFF; update(); };
   G.tap = (name) => { const bit = BTN[name]; if (!bit) return; tapBits |= bit; update(); setTimeout(() => { tapBits &= ~bit; update(); }, 120); };
   addEventListener('keydown', (e) => {

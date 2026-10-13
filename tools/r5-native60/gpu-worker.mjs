@@ -2,9 +2,12 @@ import {createLiveSongRenderer} from './renderer.mjs';
 import {createTemporalFrame} from './temporal.mjs';
 import {nextDeadline} from './cadence.mjs';
 import {sceneTexture} from '../r5-scene-mobile/src/texture-policy.mjs';
+import {C,ewmaStore,maxStore} from './control.mjs';
 let renderer,canvas,context,device,port,latch,transport,shaders,sceneMotion=false,queued=null,current=null,temporal=null,known=new Map(),running=false,timer,nextAt=0,lastReport=0,sourceSerial=0;
 const state={rendered:0,snapshots:0,stale:0,coalesced:0,textureCPUBytes:0,targetHz:60,maxGPUFramesInFlight:1,directPort:true,originalShaders:true};
-function stop(error){clearTimeout(timer);if(transport)Atomics.store(transport,0,0);postMessage({type:'error',error:error?.stack||String(error)});}
+// latch = tablero compartido (control.mjs). Un consumidor viejo manda 8 bytes: sin telemetría ni gobernador.
+const board=()=>latch&&latch.length>C.WORKER_US?latch:null;
+function stop(error){clearTimeout(timer);if(transport)Atomics.store(transport,0,0);const b=board();if(b)Atomics.store(b,C.GPU_LOST,1);postMessage({type:'error',error:error?.stack||String(error)});}
 onmessage=async({data:m})=>{
  try{
   if(m.type==='init'){
@@ -56,7 +59,9 @@ async function tick(){
     // 100ms of input extrapolation, with no game/audio simulation in this worker.
     const dt=fresh?0:Math.max(0,Math.min(100,age))/1000;
     const animateAt=performance.now(),dirty=temporal.animate(dt);state.lastAnimateMs=performance.now()-animateAt;
-    const gpu=await renderer.render(temporal.inputs,context,{reuse:!fresh,dirty});
+    const frameAt=performance.now(),gpu=await renderer.render(temporal.inputs,context,{reuse:!fresh,dirty});
+    const b=board();if(b){ewmaStore(b,C.GPU_US,gpu.gpuWaitMs*1000);maxStore(b,C.GPU_MAX_US,gpu.gpuWaitMs*1000);ewmaStore(b,C.WORKER_US,(performance.now()-frameAt)*1000);Atomics.add(b,C.RENDERED,1);
+     Atomics.store(b,C.TEX_GPU_KIB,(gpu.residentTextureBytes||0)>>10);Atomics.store(b,C.TEX_CPU_KIB,state.textureCPUBytes>>10);Atomics.store(b,C.BUF_KIB,(gpu.bufferBytes||0)>>10);Atomics.store(b,C.SCALE_PCT,Math.round((gpu.scale||1)*100));}
     state.rendered++;state.deltaMs=dt*1000;state.sourceAgeMs=age;state.motionPlans=temporal.planCount;state.scenePlans=temporal.scenePlanCount;
     if(gpu.accepted&&Atomics.compareExchange(latch,0,0,1)===0){
      const bitmap=canvas.transferToImageBitmap();port.postMessage({type:'frame',bitmap,info:{seq:current.info.seq,accepted:gpu.accepted},latch:latch.buffer},[bitmap]);

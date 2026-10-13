@@ -8,6 +8,8 @@
   const w=new W(...args);
   w.addEventListener('message',({data:m})=>{
    if(m.type!=='r5NativePort')return;
+   // Claude 2026-10-13: el mismo SAB lleva la telemetría y la política del gobernador (control.mjs, gh3-governor.js).
+   window.gh3Governor?.attachControl?.(m.latch);
    const port=m.port;let lastText=0;port.onmessage=({data:m})=>{
     if(m.type!=='frame')return;
     const latch=new Int32Array(m.latch);
