@@ -65,3 +65,49 @@ test('línea de comandos: lee carpetas de corrida y guarda la tabla', () => {
   assert.ok(fs.existsSync(path.join(dir, 'cmp', 'comparacion.md')));
   fs.rmSync(dir, {recursive: true, force: true});
 });
+
+// measure-gov.mjs con un run-song FALSO (GOV_RUNNER): comprueba el orden, el ?gov= de cada corrida y la comparación final.
+const FAKE = `import fs from 'node:fs';import path from 'node:path';
+const q=new URLSearchParams(process.env.GH3_QUERY),gov=q.get('gov'),out=path.join(process.env.FAKE_DIR,process.env.HW60_LABEL);
+fs.appendFileSync(path.join(process.env.FAKE_DIR,'orden.txt'),gov+' '+process.argv.slice(2).join(' ')+'\\n');
+if(process.env.FAKE_FAIL===gov){console.log('Turno ocupado');process.exit(1);}
+fs.mkdirSync(out,{recursive:true});
+fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({...JSON.parse(process.env.FAKE_RUN),query:process.env.GH3_QUERY,governor:{...JSON.parse(process.env.FAKE_RUN).governor,modo:gov==='1'?'activo':gov}}));
+console.log('etapa songPlaying');console.log(JSON.stringify({out,song:process.argv[2],ok:true}));`;
+
+function measure(extra = {}, args = ['talkdirtytome', '--full']) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gov-measure-')); fs.writeFileSync(path.join(dir, 'fake.mjs'), FAKE);
+  const env = {...process.env, GOV_RUNNER: path.join(dir, 'fake.mjs'), FAKE_DIR: dir, FAKE_RUN: JSON.stringify(run()), GOV_OUT: path.join(dir, 'cmp'), GOV_PAUSE_MS: '0', DEMO_ROOT: path.join(dir, 'sin-demo')};
+  delete env.GH3_QUERY; Object.assign(env, extra);
+  let code = 0, stdout;
+  try { stdout = execFileSync(process.execPath, ['tools/r5-native60/measure-gov.mjs', ...args], {env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}); } catch (e) { code = e.status; stdout = e.stdout; }
+  return {dir, code, stdout, orden: fs.readFileSync(path.join(dir, 'orden.txt'), 'utf8').trim().split('\n')};
+}
+
+test('medir: corre primero observa y después activo, con el mismo tema, y compara', () => {
+  const r = measure();
+  assert.equal(r.code, 0, r.stdout);
+  assert.deepEqual(r.orden, ['observa talkdirtytome --wait --full', '1 talkdirtytome --wait --full']);
+  const c = JSON.parse(fs.readFileSync(path.join(r.dir, 'cmp', 'comparacion.json')));
+  assert.equal(c.observa.modo, 'observa'); assert.equal(c.activo.modo, 'activo');
+  assert.deepEqual(c.avisos, []);
+  assert.match(r.stdout, /Corrida observa[\s\S]*Corrida activo[\s\S]*\| Cortes de audio/);
+  fs.rmSync(r.dir, {recursive: true, force: true});
+});
+
+test('medir: --escena usa el consumidor de escena y respeta un GH3_QUERY propio', () => {
+  const a = measure({}, ['slowride', '--escena']);
+  const qa = new URLSearchParams(JSON.parse(fs.readFileSync(path.join(a.dir, 'gov-activo-escena', 'verification.json'))).query);
+  assert.equal(qa.get('r5liveconsumer'), 'r5snap-native60-scene.js'); assert.equal(qa.get('gov'), '1');
+  const b = measure({GH3_QUERY: 'manual=1&gov=0&x=7'}, ['slowride']);
+  const qb = new URLSearchParams(JSON.parse(fs.readFileSync(path.join(b.dir, 'gov-observa-pista', 'verification.json'))).query);
+  assert.equal(qb.get('x'), '7'); assert.equal(qb.get('gov'), 'observa');  // reemplaza el gov que traía
+  for (const d of [a.dir, b.dir]) fs.rmSync(d, {recursive: true, force: true});
+});
+
+test('medir: si la primera corrida no guarda nada, no corre la segunda', () => {
+  const r = measure({FAKE_FAIL: 'observa'});
+  assert.equal(r.code, 1);
+  assert.deepEqual(r.orden, ['observa talkdirtytome --wait --full']);
+  fs.rmSync(r.dir, {recursive: true, force: true});
+});
