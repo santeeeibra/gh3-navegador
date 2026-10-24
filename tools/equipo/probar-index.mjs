@@ -1,0 +1,27 @@
+// Carga el index de una demo con localStorage limpio y mira que la prueba de equipo corra y guarde (no juega).
+import {chromium} from 'playwright';import http from 'http';import fs from 'fs';import path from 'path';
+const dir=process.argv[2];
+const mime={js:'text/javascript',html:'text/html',json:'application/json',css:'text/css',wasm:'application/wasm'};
+const srv=http.createServer((q,r)=>{const f=path.join(dir,decodeURIComponent(q.url.split('?')[0]).replace(/\/$/,'/index.html'));r.setHeader('Cross-Origin-Opener-Policy','same-origin');r.setHeader('Cross-Origin-Embedder-Policy','require-corp');try{r.setHeader('content-type',mime[f.split('.').pop()]||'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.statusCode=404;r.end();}}).listen(0);
+await new Promise(r=>srv.on('listening',r));
+const b=await chromium.launch({channel:'msedge',headless:true,args:['--enable-unsafe-webgpu']});
+const p=await b.newPage({viewport:{width:1280,height:720}});
+await p.addInitScript(()=>Object.defineProperty(navigator,'webdriver',{get:()=>false}));const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto(`http://localhost:${srv.address().port}/index.html`);
+await p.waitForTimeout(500);
+console.log('panel visible:',await p.evaluate(()=>!!document.getElementById('gh3Equipo')));
+await p.waitForSelector('#gh3Equipo',{state:'detached',timeout:20000}).catch(()=>console.log('panel no se cerró'));
+await p.waitForTimeout(1500);
+console.log('guardado:',await p.evaluate(()=>localStorage.getItem('gh3equipo')));
+console.log('calidad usada:',await p.evaluate(()=>JSON.stringify(window.gh3Quality)),'url:',p.url().slice(-120));
+await p.waitForSelector('#gh3EqCal',{timeout:8000}).then(()=>console.log('oferta de calibración: sí'),()=>console.log('oferta de calibración: NO'));
+await p.click('#gh3EqCal').catch(()=>{});await p.waitForTimeout(800);
+console.log('prueba de retraso abierta:',await p.evaluate(()=>!!document.getElementById('gh3LagTest')),'| cal:',await p.evaluate(()=>JSON.parse(localStorage.getItem('gh3equipo')).cal));
+await p.reload();await p.waitForTimeout(2500);
+console.log('vuelve a ofrecer tras reabrir:',await p.evaluate(()=>!!document.getElementById('gh3EqCal')));
+console.log('sección en Ajustes:',await p.evaluate(()=>document.getElementById('gh3EqSec')?.innerText.replace(/\s+/g,' ')));
+p.on('dialog',d=>d.accept());
+await p.evaluate(()=>document.getElementById('gh3EqRe').click());await p.waitForTimeout(9000);
+console.log('tras Medir de nuevo -> guardado con t nuevo y cal vacío:',await p.evaluate(()=>{const e=JSON.parse(localStorage.getItem('gh3equipo'));return Date.now()-e.t<15000&&!e.cal;}));
+console.log('errores de página:',errs.slice(0,3));
+await b.close();srv.close();

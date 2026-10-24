@@ -1,0 +1,1697 @@
+{
+ "version": 1,
+ "cases": {
+  "9fcb58b7dd0474af4c52fd2d03cbf10fc1a7895bd4acdb1aebdc9a4abac71961": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 398,
+   "reason": "Texture layout: missing guest bytes (8192 captured, 14336 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "fc7ea780e6026a322766a8d1da9738a0a38234748770756ef01a1335165b846d": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 399,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 6144 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "902cffa7d772eaba3246a03d8f355d54793066cdd629966b6852f546076105ed": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 400,
+   "reason": "Texture layout: missing guest bytes (8192 captured, 14336 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "5027e333653663b2e3d2bd545efa1dba02aea05964cc7681c32a2399cfe45f90": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 401,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 6144 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "d4ed1e9792141b31933e30f73e61099104d12abc7f6e2cc1d53d321eeba5cfce": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 402,
+   "reason": "Texture layout: missing guest bytes (8192 captured, 14336 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "0e597912b70d742f6e03e19760e31eeeb1f4df39dfac5e5871f89c3174701ee5": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 412,
+   "reason": "Texture layout: missing guest bytes (256 captured, 264 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "5a0a14f2c78cb4cc59f57a02c57878bfc2bb3d55605c9a7b789b71598f5f41bb": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 413,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 5952 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "41e4a3bab8102a19537fd5c35d8957dca325be485d5f4241e4ebe43222b76664": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 414,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 5952 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "adb2061635d4a815a2cb74379503acd7efe6e9461d63a6e7f9c1385568be2c16": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 429,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 5952 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "01cd3bdefce2d12b15490426aef65116d0dcc7162511096257d4bb1b0c1fb31d": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 430,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 5952 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "02934b969079f2c396a0659cefdbc387eb2a8e3e52c027879d113618295f5358": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 432,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 5952 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "2897927d084f3ddd8218fcf3c7072b1c1fd035f9c1cc6cfefbf55803d76133a7": {
+   "status": "known",
+   "class": "resource-incomplete",
+   "draw": 433,
+   "reason": "Texture layout: missing guest bytes (4096 captured, 5952 required)",
+   "note": "Captura incompleta (productor R5F): r5_frame.cpp guarda TextureInfo::memory.base_size = bloques visibles (pitch x filas); textura tiled chica (<32 filas de bloques) necesita el extent de GetGuestTextureLayout (GetTiledAddressUpperBound2D), que el texture cache del SDK usa. Corrección propuesta en zona Claude, requiere nueva captura GH3; NO inventar bytes.",
+   "evidence": "tools/d1-wasm/r5_frame.cpp:350; rexglue-sdk src/graphics/pipeline/texture/info.cpp:313; util.cpp:395-407; d3d12/texture_cache.cpp:1583-1818; aceptados tiled con >=32 filas o fmt18 16x32 cubren el rango; run wgpur-present2",
+   "date": "2026-10-11",
+   "resolvedBy": {
+    "producer": "tools/d1-wasm/r5_frame.cpp GuestBaseExtent (build artifacts/d1-wasm/r5frame-v2)",
+    "capture": "artifacts/d1-wasm/r5frame-v2/runs/r5f-v2-menu-r5frame-s8427.r5f",
+    "evidence": "compare-r5f.json: 44/44 layout ok, 12 recuperadas, 0 perdidas, fetch/shaders iguales, prefijo de bytes viejo igual; run v2-44: 44/44 replay-consistent",
+    "date": "2026-10-11",
+    "note": "La captura vieja (r5frame/runs/r5f-edge-menu-on-r5frame-s8966.r5f) conserva el defecto a propósito; sigue clasificado como conocido para ella."
+   }
+  },
+  "95fb0c1f81f037cb8618c1c6d4931558904d57907e20d269061d4e70a8bc6ee9": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 395,
+   "stateHash": "e7b469904f56539795b68237074cb80f863ea5aa416c76e44980c7fa805a7fa1",
+   "resourceHash": "4c8e1ba9d9b61803cb52e5f574ad98e0573b346309aae375db9e7f96f62e6ef5",
+   "prefixHash": "1cdd10a96da8760bb61081f17ec039fb7eb48ff5f2277b77fcbbd16f25eac9a2",
+   "expect": {
+    "edgeImage": "c72fce58eb82a2a63727a456cc69ce2fa5d19f7207c80eb8b6cd7ca7be03187d",
+    "d3d12Image": "c72fce58eb82a2a63727a456cc69ce2fa5d19f7207c80eb8b6cd7ca7be03187d"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "20315727ac4177cb7c71ba0145d2303e5cdbcdc15957376d364990aaef3dffcb": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 396,
+   "stateHash": "6a94d836e5f5d3db3c3d29f84403e1ae6c3dbfc303ed52d175305a0755b33abb",
+   "resourceHash": "4e62b912315c7877531e9e17ce701389663803aa73333e5d72cb17297b07fa7b",
+   "prefixHash": "a8eb47e90f38a5611eefb24a5e5af0937067841f366b6a8564b7cc1daf42f401",
+   "expect": {
+    "edgeImage": "21ba04be0aa0e1f0facc845196b004e8a4ab01c66272251e0bb994a5d4833dca",
+    "d3d12Image": "21ba04be0aa0e1f0facc845196b004e8a4ab01c66272251e0bb994a5d4833dca"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "8bf912e0f0bc00fba44311cb11649f3609af9e9a5b595645142b3270611fd2dd": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 397,
+   "stateHash": "a5f078f47d67fbac1e6c0d70964f1f3f09e7a6df36c1807b0b8d33e13efe0033",
+   "resourceHash": "2b839cc11a05f45720e05555135276d5b20e70dcf3e09163bab3449e6de7cc54",
+   "prefixHash": "ca8669ff1264863ad38c17bfcc40e5f98bee9a094901157b4cdef5dfc872c3ef",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "8bbc57752596a784b15a611ad227ded3f4faef4694ab2b2716dea89cac13d4e2": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 403,
+   "stateHash": "635c221ebda27190e33b4db37a9cba2af7ceb28a1e288514212bb95c96f983ce",
+   "resourceHash": "a18ae985f428a8541965545c292c3e1d68c94e95a54f7cfd81048e204a5b1dc9",
+   "prefixHash": "71c6c42a4730616ef8f6454e82bee599d68d6729739fac202f81badebe39239e",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "2f4f5d945dd60d1bb6bd2b93d5699a17ccbfa9e5a28a85d512a46996ae34c6b9": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 404,
+   "stateHash": "3d34d891a92281988f74a7d3875626281dc2feade8ca1ef51916daf637e9adcc",
+   "resourceHash": "21486ec31c3cd7aa5db06c27d5a72f9fc755f316b466e481ef0ce9871941b911",
+   "prefixHash": "9269d59cbe89d963acb70871deea317759382cc0ad0e2b414c20425e7f5fdcb6",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "f48cc0814978900c1acebd1c6101aa245c817078c20bde4537f280a9767a0b42": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 405,
+   "stateHash": "f75c5e9128cc71f1e32a0ec1818d9f53ddbacc2a77672d8bebaa1b3a3589cd4b",
+   "resourceHash": "327bf118fafd6896f01994449dfe8aa7cdf0d341e789e68c6454f3744157c4a0",
+   "prefixHash": "79b96a22ea80844285838e7b0895417b3bcdf345495806a46082235070b432ed",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "88cbe3cf6835778b582f026d91f176ca373e7c0638da2cb5de08269e01674a67": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 406,
+   "stateHash": "635c221ebda27190e33b4db37a9cba2af7ceb28a1e288514212bb95c96f983ce",
+   "resourceHash": "fb6df3994f5d9934f4a67a2c080e1d850d70c8e354530364524f435fdce841e5",
+   "prefixHash": "54bbd54926125b42c912ff937d7cc00c74ebc60478442362175484e8f68199e2",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "98562d2c2bc0d54c7772d51e5c3b33ff6bb3de855bd2fcce3f0d9be47f18f706": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 407,
+   "stateHash": "3d34d891a92281988f74a7d3875626281dc2feade8ca1ef51916daf637e9adcc",
+   "resourceHash": "a3123fd55ba27c23b0f4bd6a8058b10dbe36dae3a649883422fa57fc25eb0faf",
+   "prefixHash": "36112a3b6f6c2a482bf24eca3881f8f4911ab203fb227ca6fed35bf72f0c0558",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "284955bb9d6334556e2eb5030678c2a950c91a58251bd7b430311474000af8af": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 408,
+   "stateHash": "f75c5e9128cc71f1e32a0ec1818d9f53ddbacc2a77672d8bebaa1b3a3589cd4b",
+   "resourceHash": "29dcd8b51018e0faeaf8da96b3697827399270ca9b5ab4b44c38495d368f1c97",
+   "prefixHash": "356fc815ab7416915e31a32fcbe86d064ebd0f8cd37af8e51548a1bb32c5a360",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "4202ede10f85b7d7372066463e9a526929f33e8a02b68d585a06eb963d820596": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 409,
+   "stateHash": "65bfb05cb700ea8d95a15714c82bfc1d62e3a4484c64cc98c6e8c090c125caf3",
+   "resourceHash": "2558615611c3c020209099bba296e2fb779077f084d2d95e054854dd6689d3a7",
+   "prefixHash": "404d850c1f232ec0318161ae7c56ca23c3ad7b485c8a833608d32a6bd5c414b3",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "58a1ca9d2219e54b7974892148f8cd7e88610d3ad4b00a90f2550b8eb44a0efc": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 410,
+   "stateHash": "65bfb05cb700ea8d95a15714c82bfc1d62e3a4484c64cc98c6e8c090c125caf3",
+   "resourceHash": "ccec90e56f9b12796a8fdd475fee9f49fc85a165f58eeb7861107b6980aa32d1",
+   "prefixHash": "38a5499dd2e4fd375a7033c286ca468537bb0a25d388d309eaff06d6a0e564f0",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "acf276c1d836cf68e934f5fab0e18ce03a2db8033df435749605cfc717b746f6": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 411,
+   "stateHash": "635c221ebda27190e33b4db37a9cba2af7ceb28a1e288514212bb95c96f983ce",
+   "resourceHash": "8d0b9330ff18c697b94e099cff0ed4720df19de8f54fc630cda0cf9122fd1a70",
+   "prefixHash": "e4c9a2b15469b25984ca24cedb4d2dbcf04a2eeeff05dec91b4e3f4453ba7068",
+   "expect": {
+    "edgeImage": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44",
+    "d3d12Image": "0e9952945e9e022704f9c056709c3c1f36d35f63824783df52d8ea261a1d1b44"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "5be0e79858e85b5a9ccad1aae231b1d76ba8f7b3a83c7fd12012ef1af4ef1eee": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 415,
+   "stateHash": "310bd531cd1c3f93df62bdb72d7905a35937bcfa01fc09b0fea03f7d4fa14636",
+   "resourceHash": "3230268a950e45b4fc440d8c3c2e8322d21b51c2c0fa564aea51faddc6069a59",
+   "prefixHash": "3d8183ab176c772fbac8261936901f6bba92cea4b57aa8c279681ec8b2739cac",
+   "expect": {
+    "edgeImage": "b3a8eea52ebc0a12c75f0c04f772709a871c810f2038aea74fc7544849b6b21c",
+    "d3d12Image": "b3a8eea52ebc0a12c75f0c04f772709a871c810f2038aea74fc7544849b6b21c"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "1898d19811a6a2c7257eba4e82cb7203a44ac52d451308fe39842879aeeddd64": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 416,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "4641b54e0c8764222868853217fc97173202d0327ce398d99a8404e7c6e5ac07",
+   "prefixHash": "a36c94981dc5cf3080e8928519648de9ae56a04955465c27cea036926b7de320",
+   "expect": {
+    "edgeImage": "89a50623551ea50576d69fadd4d1081a6bcbb0255102f8765e75463afb9d44a5",
+    "d3d12Image": "89a50623551ea50576d69fadd4d1081a6bcbb0255102f8765e75463afb9d44a5"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "e7a1603f406011d2b696a6a19357c04c223a1c1800b8d0a6f583b20208ab42fa": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 417,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "8c9140cd669c11c0ca2f77eb669b431f757bc1c3ba0cde5f6ea5506e85285014",
+   "prefixHash": "dfce66fdbb49cb86d1980fcff7fdb85bbf8b05cb3399aafcc8cb59f55ca2e20c",
+   "expect": {
+    "edgeImage": "5a0504d6e999fb4006f072f6ad6dcecc7018c5687080c04bef4f4d421a2f3891",
+    "d3d12Image": "5a0504d6e999fb4006f072f6ad6dcecc7018c5687080c04bef4f4d421a2f3891"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "85dfc83a678e05595ee630b62409450fbfbebf3606dbdc3ddd5e6ca6bbf430cd": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 418,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "e53a39efcdcbfeecc6e85a7f06e32b6153a2b40d27132ce9fd617923eede523a",
+   "prefixHash": "ca616db2db7ec3194eddff6da3866872a65d099b52bb633e4447dd5c77722a29",
+   "expect": {
+    "edgeImage": "40eea3dc89647d37c2c4760b84218b8b69055bad272de21d2d446c02e08a886b",
+    "d3d12Image": "40eea3dc89647d37c2c4760b84218b8b69055bad272de21d2d446c02e08a886b"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "28decc291584e6d01b1610d083fdc6e6353ec44490126d9fdd81a27a01116a53": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 419,
+   "stateHash": "f7f9381a96572ea171851acd2532432305b2a8f81f26d01f389f8b7b6a7858ba",
+   "resourceHash": "c91d34cfc2e290059648eea29563ae3f10d78e309d9a5658020cf6271ba7855d",
+   "prefixHash": "88259c1082358af43df554096937f9cddb6cc1a43a714668f21f51b652dd0210",
+   "expect": {
+    "edgeImage": "10ebe0c69bf2583f21c4830593a374ae47cf3af773eef7071e049317e013e1e2",
+    "d3d12Image": "10ebe0c69bf2583f21c4830593a374ae47cf3af773eef7071e049317e013e1e2"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "a8946af33620d567da15bbe3fefee92bc4d01d0fbd3e94056586e95d0601d267": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 420,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "b9ac318812d367824d570994243a1f0d80c84919bd2353a4faa49fa92ac83e82",
+   "prefixHash": "51910e03084622ee624209a89431e2c3cfb0f9dde65415dc1f3c7a6fe9bc22fa",
+   "expect": {
+    "edgeImage": "8ddd32e9d652d7dfe2959658f97aa6f8501f31eda333747399d61f509b113dee",
+    "d3d12Image": "8ddd32e9d652d7dfe2959658f97aa6f8501f31eda333747399d61f509b113dee"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "103c9fc9acc19d25c889c0889f3af29b3de0e89d83b0d12e4874ecf3efbe5e28": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 421,
+   "stateHash": "310bd531cd1c3f93df62bdb72d7905a35937bcfa01fc09b0fea03f7d4fa14636",
+   "resourceHash": "fd13de05fefbedc75691bdc780a9692fc8e4ab8beb57542564631de472ded19d",
+   "prefixHash": "b7ab28ad3348c146b64df740a8146b8423c257b1838fb86518f11ed40f073291",
+   "expect": {
+    "edgeImage": "99dd28a3ac0f55e287c6c184566f965222229e9755051999d458873dc3c0e412",
+    "d3d12Image": "99dd28a3ac0f55e287c6c184566f965222229e9755051999d458873dc3c0e412"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "eca6b2d86a5d622ddd1d0f84056f7a6d7979e73b4f4dbc04cc2b94fbff03ac17": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 422,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "1beab3402626879dcb43a6ef40362b9e8e457dfaee9366e9d9dc1fa3594710c5",
+   "prefixHash": "2724c946f0e8137e58d9aa9275ce93152d17f5104ed2c5030f466a9a307dff75",
+   "expect": {
+    "edgeImage": "1d4814ccdb323f27e22934cbd5ce9818bf0210c6500395d336cf9d49e85d9769",
+    "d3d12Image": "1d4814ccdb323f27e22934cbd5ce9818bf0210c6500395d336cf9d49e85d9769"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "6ee4236990b0265abb81fa8ec0ff8e829d5651f9e81bcf229563e39e194cab04": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 423,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "e457cebb9144bc910742cb0850a6356ab2b1016ffefca62e5be3a716ace0f85d",
+   "prefixHash": "1451167941d43f07ad23c79492253bd30128fa24ed5128bbef559d4ff694f902",
+   "expect": {
+    "edgeImage": "d82a8dcf5f3b479ce1f9c338e2e66c3dfa1050845a98f55b7e547f1ec2d53e89",
+    "d3d12Image": "d82a8dcf5f3b479ce1f9c338e2e66c3dfa1050845a98f55b7e547f1ec2d53e89"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "02f8caf457cb91245aeb7b41dacc8c6408b5b598ca43e6797a763b0205ec91e9": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 424,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "13303d6bda271281e60ed8233a8b9a51147099973434b332e586547df59a3caa",
+   "prefixHash": "68c74a9bde258de5f035451649f1f3ad4841da337983b937588230a227de1fc8",
+   "expect": {
+    "edgeImage": "b9892de2159378ab760ea022501e112d5153144b6ba48566c4d6d741c5b83a69",
+    "d3d12Image": "b9892de2159378ab760ea022501e112d5153144b6ba48566c4d6d741c5b83a69"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "634feef4df9d8274fedfed48a01e5b0e8519c77097f15495c865ca49e2f25e5a": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 425,
+   "stateHash": "f7f9381a96572ea171851acd2532432305b2a8f81f26d01f389f8b7b6a7858ba",
+   "resourceHash": "5a06797283580e84803fccb4e801dd4a9dfea3fa2950633fc6b40bd32c5c2418",
+   "prefixHash": "65ac837daf79d3c8cb00f0416438871fefb645512bc946c89734ce2eb2ce4cbb",
+   "expect": {
+    "edgeImage": "36aa5a9dee2d3eb84382f72570b306dc96b9cd9b330f39f481cd840e7da6ec73",
+    "d3d12Image": "36aa5a9dee2d3eb84382f72570b306dc96b9cd9b330f39f481cd840e7da6ec73"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "78d78ddb9b04920532fc479557f9dfa4cd60f8344371590bb50e45813713e41b": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 426,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "fec97e5e73de6c900fc1878be743b325c6130eb2beeed22cd9bca71b526eea5a",
+   "prefixHash": "1c7747853fefc28663c5ca5c97b31ee628345697776687f5f87ab9501a95e2c9",
+   "expect": {
+    "edgeImage": "d25d76123fe0f900dc477a428c3b965a28c905dd4f53ac19345a18a68dcc2f24",
+    "d3d12Image": "d25d76123fe0f900dc477a428c3b965a28c905dd4f53ac19345a18a68dcc2f24"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "9b6b49f34a7bd927aa55f81cf504fa095b32bb4a8f213a2afd812e70ad059da3": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 427,
+   "stateHash": "25ffdda0eaf2a2de322a9c58647350e7dbdb598244e5a82407c3d6ff3104c0d8",
+   "resourceHash": "262e4b6cd015f5bc3438e954c909b17016539c7bad0ced578abb7f0155459b3d",
+   "prefixHash": "214d3013a2a78dd8d0386a79762ac0740d8335bdd8e83ba0bd359093a5c44d57",
+   "expect": {
+    "edgeImage": "ea156b5d769b33ee12ed75f40df2c2956e2841f693e0245f4672a8fa3f900a1c",
+    "d3d12Image": "ea156b5d769b33ee12ed75f40df2c2956e2841f693e0245f4672a8fa3f900a1c"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "8494258806e1b022f766de57f3d6665d49f27f57a7568e5e62724c341e5f1fe4": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 428,
+   "stateHash": "f75c5e9128cc71f1e32a0ec1818d9f53ddbacc2a77672d8bebaa1b3a3589cd4b",
+   "resourceHash": "b9e60d00f42af4bf61915568044528b204d5475c688b60b49c8efcedde48f0cf",
+   "prefixHash": "e7a103dd7a9737837f335b0b97b9509662b3132f3540ebc222a5661f1f56a5a7",
+   "expect": {
+    "edgeImage": "ea156b5d769b33ee12ed75f40df2c2956e2841f693e0245f4672a8fa3f900a1c",
+    "d3d12Image": "ea156b5d769b33ee12ed75f40df2c2956e2841f693e0245f4672a8fa3f900a1c"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "3b6e5b6031ca45d1024514fb5b01f06460662b6401ba952eea20d18b8f70ba05": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 431,
+   "stateHash": "59cc506510ce117ff5b0b82aa8b907d8469b983f9e9b45665f0ba4a6d1109729",
+   "resourceHash": "d0af6cb292551af4e4be88b4cdfbdb4c08fc59a5e254657af87fc10be89d6922",
+   "prefixHash": "ee5ff0451e891f345be40080bdc98263da2baac2adf865b1357cf7cce048eb43",
+   "expect": {
+    "edgeImage": "f1cae62c1fc1c441911c2a1b672e19ca926c6ac1afc65e467f25018243e564b1",
+    "d3d12Image": "f1cae62c1fc1c441911c2a1b672e19ca926c6ac1afc65e467f25018243e564b1"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "7546739f5d9378c3a696bcf1545030aa252476c184bafa1ed310dcd8a1f78648": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 434,
+   "stateHash": "59cc506510ce117ff5b0b82aa8b907d8469b983f9e9b45665f0ba4a6d1109729",
+   "resourceHash": "56478f941c662befb3fb009baea5fbe6241adac5bd5029649d97b8c52bc359bc",
+   "prefixHash": "4244431388d2ad8daff0385d7165432018d528d48bcc59ec68cc1bd1a534711d",
+   "expect": {
+    "edgeImage": "8e5901be278590ac35604999aaf5aa56587918ad0c1ca3bb5610604e8689b5e9",
+    "d3d12Image": "8e5901be278590ac35604999aaf5aa56587918ad0c1ca3bb5610604e8689b5e9"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "97f7dad10ae71d739ce75bfbbcba0b5673532e0aca2c969420ad0ff5fc6cab8e": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 435,
+   "stateHash": "f043c0bdf884897a4fb50fb102b8b9cc4e2eca591ae4dcb446a3309d093626e3",
+   "resourceHash": "bb8a56a2608a7ef88d69a2fdc84cc1d50dbac8170d6eabe17bad052492503010",
+   "prefixHash": "244d1ef76cb28995b5d427dc6fdfa6f549fabe07cca33c761f4f0338e0c1710c",
+   "expect": {
+    "edgeImage": "2ab136a36fe75e64e57d37ebac1e3c8be3015831abb0282a78f23cd7d23883c4",
+    "d3d12Image": "2ab136a36fe75e64e57d37ebac1e3c8be3015831abb0282a78f23cd7d23883c4"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "65d91c17154eb32356bc8f8cc6c4dc8ad45b531e65d843b6bfcc57177bb8cdab": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 436,
+   "stateHash": "310bd531cd1c3f93df62bdb72d7905a35937bcfa01fc09b0fea03f7d4fa14636",
+   "resourceHash": "0844b629077492fa2f608d89139f45a2220bbfdde8796494f568989e077ae451",
+   "prefixHash": "0495f95e35c2e730c07de39199739e36b826ef680c391a5878028e37f25e4dfd",
+   "expect": {
+    "edgeImage": "457606d166b90213c5fd1e1083b53ae241065edf3de64a217d478c37feb592a1",
+    "d3d12Image": "457606d166b90213c5fd1e1083b53ae241065edf3de64a217d478c37feb592a1"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "ffb809154ef63e3795eee3815fb9b6d48c269d3053a7abb6be37b613825075c7": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 437,
+   "stateHash": "f043c0bdf884897a4fb50fb102b8b9cc4e2eca591ae4dcb446a3309d093626e3",
+   "resourceHash": "b538fb8f2f7044cd9fdf0e11d5b4576f46ebc37f8f4c880d60d178fa433a8479",
+   "prefixHash": "b41bc93fff4020fd00229db667476405242509814791de17cd669e90c1492e08",
+   "expect": {
+    "edgeImage": "cbf2f2d0869f904bae309efe6d25df414deb1b6ef9c9c99b3e00927f5f541034",
+    "d3d12Image": "cbf2f2d0869f904bae309efe6d25df414deb1b6ef9c9c99b3e00927f5f541034"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "0bb96f9f4380f71bbe9ad8f2a25953ff0c05efe6ea58533f1813165567657cae": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 438,
+   "stateHash": "25ffdda0eaf2a2de322a9c58647350e7dbdb598244e5a82407c3d6ff3104c0d8",
+   "resourceHash": "8b999d786dbbe09249414fb3a07fef0705a6af173e9479765ae30e2f4dc69864",
+   "prefixHash": "c70ca3a9d90d41f63bb4da0d2208ed79f6678f9aae7d6a88d84a8e7137466397",
+   "expect": {
+    "edgeImage": "0ad8906cb855ffa18afe5f334f8fa6d354edd557a0c8d931dd904ef97ace84c3",
+    "d3d12Image": "0ad8906cb855ffa18afe5f334f8fa6d354edd557a0c8d931dd904ef97ace84c3"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/wgpur-present2",
+    "captureSha256": "2f7800903cd7d4ea1e07568416e56dd7e2d3bf79270ee153b1d305d5620dcf45",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "2879b38f7b560dd0be3f31ea124b1f91d6719ae9a5078f63f758028365caf3ba": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 396,
+   "stateHash": "6a94d836e5f5d3db3c3d29f84403e1ae6c3dbfc303ed52d175305a0755b33abb",
+   "resourceHash": "a62d1dc5b03056ade7cfc66bd5e64ac2d14ed9ae4e5b9df882e95dd0d00c1406",
+   "prefixHash": "d4995ffeffa6ed308072c8dc94b95374f541c47344c80490557fafe7696a3793",
+   "expect": {
+    "edgeImage": "19d00bdb1473be4ec0313faca8770921dbb000e45e9ba1a930e179520cc52e39",
+    "d3d12Image": "19d00bdb1473be4ec0313faca8770921dbb000e45e9ba1a930e179520cc52e39"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "cf80c9256beb519c74d6b03e27a928e593d324929fddd1ac38208dff9b4b9344": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 397,
+   "stateHash": "a5f078f47d67fbac1e6c0d70964f1f3f09e7a6df36c1807b0b8d33e13efe0033",
+   "resourceHash": "2b839cc11a05f45720e05555135276d5b20e70dcf3e09163bab3449e6de7cc54",
+   "prefixHash": "ecb17414855c79d195af0d8e9ae16197e4239a8a21a03738d278f370cd17a1f6",
+   "expect": {
+    "edgeImage": "f2aeb1c8ed538066529e26a031e549e696c6f84b24f5e53bf30d704b047c5c0c",
+    "d3d12Image": "f2aeb1c8ed538066529e26a031e549e696c6f84b24f5e53bf30d704b047c5c0c"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "eb7fb1ef822ca92cd2fdba1c682c672f566adbf7755fb94c164b7feeb795dcbc": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 398,
+   "stateHash": "1c200bff9692ffde2530e604e17aeede543aa60c7a6e8bca1dcd86eb4e587d57",
+   "resourceHash": "86e6a3e589208db92cf1ca7e00a3a5f67b67290f2d68baa0243c5b3cddcff87c",
+   "prefixHash": "df29d82b656b133c575ce52ac14f39ca254b8cbf5d99afc9d8747bf6ba796859",
+   "expect": {
+    "edgeImage": "900a03fabb6af4c141c53f00f6bd8ebafc3bdae6863e944ff955ebc6a71dcac5",
+    "d3d12Image": "900a03fabb6af4c141c53f00f6bd8ebafc3bdae6863e944ff955ebc6a71dcac5"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "053aed067e53127804d2dafe95efdaf1f8c3e6961be1ea081d1ee8213141f914": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 399,
+   "stateHash": "f56a33ddca8e8e1496049fa3ab7b44b3a85780d5cac7ad62641248755bbf9905",
+   "resourceHash": "861780d3664e71eea8e32acca182dc421a038b35ccb14d8091e23392a418c5c7",
+   "prefixHash": "b4bae0b81f09a26d67757612274f339859db7104a1ae5defd79ea7b263a5faab",
+   "expect": {
+    "edgeImage": "a6b7b4683dac39b3e991f918396e48d1bf0ddf37dbcb6cc9750b4bd13ee26f47",
+    "d3d12Image": "a6b7b4683dac39b3e991f918396e48d1bf0ddf37dbcb6cc9750b4bd13ee26f47"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "00baa8c9616ecc7e210f0eb59e8a4688cee2cadee11ae039f61dfd62d6f1cf6d": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 400,
+   "stateHash": "a1fc9755a1a4f69b8094a8455bf531c2a27ae75cea7fe5993a289fbde471f8cf",
+   "resourceHash": "c96431e9b1361ac57b9ab3e7d0204f7b8d69523174f4d5ed30e2acbe004dcea9",
+   "prefixHash": "cc00c0e76cb991421137cad3dc335f3528c9eb2f037ad06545f73ef3ad3ce122",
+   "expect": {
+    "edgeImage": "a861dd7be0dbcb5931f7147bcdd5b12d3067143d1b9251ee60be57c5a2f5b1e1",
+    "d3d12Image": "a861dd7be0dbcb5931f7147bcdd5b12d3067143d1b9251ee60be57c5a2f5b1e1"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "7dcfd34831a2a98621bc7e46c95daf5137d50b167a0dd13b33a6f68466b59db5": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 401,
+   "stateHash": "f56a33ddca8e8e1496049fa3ab7b44b3a85780d5cac7ad62641248755bbf9905",
+   "resourceHash": "f0f5b1909f17f3e83563c3b977c6c5868d38b1a7dfc5fd725712b170cc60c056",
+   "prefixHash": "2b19ee42217e44f981987e34f00e31fcf7ae5909ba10b4b4736e00b65dcd5c44",
+   "expect": {
+    "edgeImage": "2880cf6d0b2e2714d3edff76c9895870dfaac54c778ec71dced24e515a7ae799",
+    "d3d12Image": "2880cf6d0b2e2714d3edff76c9895870dfaac54c778ec71dced24e515a7ae799"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "cef5f0f82123cd1a606b7d47c0165bdf14a396e45611e25070a29f774c52a4f8": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 402,
+   "stateHash": "a1fc9755a1a4f69b8094a8455bf531c2a27ae75cea7fe5993a289fbde471f8cf",
+   "resourceHash": "27ae37801b5554bfcf0171ba13193c3a6587437dd36cb8f8b294f259cc06cb92",
+   "prefixHash": "4cea1f33e4078793271792540ee6da5c81663f728a0a0a020b5bf4c1c1a973bf",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "160e171680bd7692a33276157a9de833801b0e84e5c760ceab1384a7dd41b88f": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 403,
+   "stateHash": "635c221ebda27190e33b4db37a9cba2af7ceb28a1e288514212bb95c96f983ce",
+   "resourceHash": "a18ae985f428a8541965545c292c3e1d68c94e95a54f7cfd81048e204a5b1dc9",
+   "prefixHash": "01f781c6d5d2a0c87793f3c1107bef766139449d8c194a882ad9df9674d81529",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "9a2e0851b4c89b83bb2eef67a2b5c661bed12244601de5cfb0afd21b412734fc": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 404,
+   "stateHash": "3d34d891a92281988f74a7d3875626281dc2feade8ca1ef51916daf637e9adcc",
+   "resourceHash": "21486ec31c3cd7aa5db06c27d5a72f9fc755f316b466e481ef0ce9871941b911",
+   "prefixHash": "c7270466e5bb87f5351395862f65a2abaf176005a2cce6e2c228b25a66c96c23",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "16387da0c7a92c537ab65ff3aeaf04e904875522fcd17d0a5943e14333f851ed": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 405,
+   "stateHash": "f75c5e9128cc71f1e32a0ec1818d9f53ddbacc2a77672d8bebaa1b3a3589cd4b",
+   "resourceHash": "327bf118fafd6896f01994449dfe8aa7cdf0d341e789e68c6454f3744157c4a0",
+   "prefixHash": "e3baf5186b150b46c5c8736721e0025f4169537d51fe92fa5ac1b29c9205a3c7",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "a3f7e6f43726cc2fb27d7c092513a720fd61170f0d0f628acf209c1bffe98ec8": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 406,
+   "stateHash": "635c221ebda27190e33b4db37a9cba2af7ceb28a1e288514212bb95c96f983ce",
+   "resourceHash": "fb6df3994f5d9934f4a67a2c080e1d850d70c8e354530364524f435fdce841e5",
+   "prefixHash": "167393146cef26759dfc7c2b102d8b1db06fe108dd93478538f3290305369ddd",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "3698146336db3ee0a0d65ef31820e1b90e310a9ff656c536ecc0eb6cc5432cf7": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 407,
+   "stateHash": "3d34d891a92281988f74a7d3875626281dc2feade8ca1ef51916daf637e9adcc",
+   "resourceHash": "a3123fd55ba27c23b0f4bd6a8058b10dbe36dae3a649883422fa57fc25eb0faf",
+   "prefixHash": "ae0a3d071e605ab80a18482014bcf64541d0072cdf70208ac2d801274323813a",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "a6044411071f5c1c965300e10304fe7ab6199a07b2efc478d716f61aeecf46a2": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 408,
+   "stateHash": "f75c5e9128cc71f1e32a0ec1818d9f53ddbacc2a77672d8bebaa1b3a3589cd4b",
+   "resourceHash": "29dcd8b51018e0faeaf8da96b3697827399270ca9b5ab4b44c38495d368f1c97",
+   "prefixHash": "e3d1428ada124c76ec01cf8b15fd9cfbb3c6d59cda19dff8c557a961b463dca8",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "dc5d4dc1ab5264ccfea62c4ac47b2db66e2aa38a533a17ffaa68b2742dc3e385": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 409,
+   "stateHash": "65bfb05cb700ea8d95a15714c82bfc1d62e3a4484c64cc98c6e8c090c125caf3",
+   "resourceHash": "2558615611c3c020209099bba296e2fb779077f084d2d95e054854dd6689d3a7",
+   "prefixHash": "49df97d966797a09e45fbf8b666c2a093dff6004f6a68899c133599856aaa329",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "deeaad91325f6c586f31bbbbe2e13bafca7375df04cc8454c001950f701df1bd": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 410,
+   "stateHash": "65bfb05cb700ea8d95a15714c82bfc1d62e3a4484c64cc98c6e8c090c125caf3",
+   "resourceHash": "ccec90e56f9b12796a8fdd475fee9f49fc85a165f58eeb7861107b6980aa32d1",
+   "prefixHash": "7a4d87ac3a33970a6bec53adacbd295ff879ef3d0fd0a0165e065d10052c90b5",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "1ddcd44f985ba5802953c969ccd59ba35a273e951f6f2299c1c6f613444fc0fe": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 411,
+   "stateHash": "635c221ebda27190e33b4db37a9cba2af7ceb28a1e288514212bb95c96f983ce",
+   "resourceHash": "8d0b9330ff18c697b94e099cff0ed4720df19de8f54fc630cda0cf9122fd1a70",
+   "prefixHash": "3590b247e9901d32f0dace46e5d9fc19b509a7885d952379591b59c935b6b694",
+   "expect": {
+    "edgeImage": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410",
+    "d3d12Image": "366fc9ae26547bf3694ec1c5d5c1debd5294018767900314e26dd59b8bcc2410"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "b866b10b754bc0ebaa8ce10214c05b725b14321f590c1aec5b6bbbba56c8231b": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 412,
+   "stateHash": "0847fc19d6ee093d575152a79c65c1a95b5fdc802aefb07deefb70d37d8c3bb4",
+   "resourceHash": "4dd564756e3ef53ac6a7e547fdec3e7caeb4934482d4c685ff7384d5acccec82",
+   "prefixHash": "ad92a6cd697db2776ad4804d0c3b994f09ce74ba059da4453a0df03cabd895b1",
+   "expect": {
+    "edgeImage": "600899b7d5446a40a9667e31bfc72133c20e008118341664228c291e38b41338",
+    "d3d12Image": "600899b7d5446a40a9667e31bfc72133c20e008118341664228c291e38b41338"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "c42c064a1a7fd946df64657bdefaaf64e4f7ad72e15c5a60b4776a7620c1b0a7": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 413,
+   "stateHash": "15f0b42d8225a46be49c7c0dc54e0135cbe2fef27cf66f4d82f18029e618ae73",
+   "resourceHash": "3422e50b4c7b576ee9192382118bf35a1e7bf83b00351f3cc517b89ff620bbd6",
+   "prefixHash": "d5e4f09b9f3a6bc53ee50243a34a55cb53813ca86920c726b13941af9a67a299",
+   "expect": {
+    "edgeImage": "6b072e5ee29c48ed9241a3d50aa18996f8edb0c6932af32bd39374ca3ec39027",
+    "d3d12Image": "6b072e5ee29c48ed9241a3d50aa18996f8edb0c6932af32bd39374ca3ec39027"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "982bbacdab5e53f198b5bd787df39b5e47e19b1dddf4c7bac4f486ed92884fbc": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 414,
+   "stateHash": "15f0b42d8225a46be49c7c0dc54e0135cbe2fef27cf66f4d82f18029e618ae73",
+   "resourceHash": "d4bfc1746ebacfcc1db08ab612529795c25f3c741b69a4839c0e72ded70e86c7",
+   "prefixHash": "50c52890f9fcc89d1c7e852d0083ade97b55d55913175bc945464ffc2d2e4e74",
+   "expect": {
+    "edgeImage": "3fd2b820f5351ca15ce4414de73af6abaa02c614f8f960307cd3c8d4faed01db",
+    "d3d12Image": "3fd2b820f5351ca15ce4414de73af6abaa02c614f8f960307cd3c8d4faed01db"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "4fedc9de6a4b0840bf1c63c7c3a6aeb361b8a33a07abc373edd3521ca132e0fd": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 415,
+   "stateHash": "310bd531cd1c3f93df62bdb72d7905a35937bcfa01fc09b0fea03f7d4fa14636",
+   "resourceHash": "3230268a950e45b4fc440d8c3c2e8322d21b51c2c0fa564aea51faddc6069a59",
+   "prefixHash": "b951ee4cd7ad7bd7df63d52f4779fcc017d04b77bd645ef0a7eae009036179c2",
+   "expect": {
+    "edgeImage": "c99337b842a76892f5252db491b0691169fd4e5e862d7678f016a466a64546c7",
+    "d3d12Image": "c99337b842a76892f5252db491b0691169fd4e5e862d7678f016a466a64546c7"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "4fd151377d06a7a565d505e4818b59d79948a9f5eb79aaf5d190713a378b7f29": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 416,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "4641b54e0c8764222868853217fc97173202d0327ce398d99a8404e7c6e5ac07",
+   "prefixHash": "082ea6763091458d6b839e1ea0d2137ac64a9082f00613bb1ad48cffb4fff51d",
+   "expect": {
+    "edgeImage": "b6a78d5e0f72a2be64a2c794f8790177c0bab55b28ad9ef22a45931a35e0bce2",
+    "d3d12Image": "b6a78d5e0f72a2be64a2c794f8790177c0bab55b28ad9ef22a45931a35e0bce2"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "8caa1b8adea3a1a6db7f046b0dc27a084e981be710e1ff859397d20d72f3e656": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 417,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "8c9140cd669c11c0ca2f77eb669b431f757bc1c3ba0cde5f6ea5506e85285014",
+   "prefixHash": "db6a46407ee666d4bf49268efa9a09dca5ab0b2206efce5c0106becc58fd0353",
+   "expect": {
+    "edgeImage": "9aa2fdc49ae184dc025dd5d1b0312668087e050caed29d6bc583738461fcd58e",
+    "d3d12Image": "9aa2fdc49ae184dc025dd5d1b0312668087e050caed29d6bc583738461fcd58e"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "823fa6b2b2742e065440058dd31fd8d222d9cb9e896a678880da7b91b546923f": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 418,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "e53a39efcdcbfeecc6e85a7f06e32b6153a2b40d27132ce9fd617923eede523a",
+   "prefixHash": "8616c88cdd44eceb3874b886e629b9ca472bfd960ac3362a0087448ad8602af5",
+   "expect": {
+    "edgeImage": "2d48e4c1615ef3c8913b51bea8a6c16f948b1868ef21fce9fade00f1da6bb0ca",
+    "d3d12Image": "2d48e4c1615ef3c8913b51bea8a6c16f948b1868ef21fce9fade00f1da6bb0ca"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "3e3e211309027bd4738c0eba1e5a10917b60bbb8c54ef602659bcc0c1517785a": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 419,
+   "stateHash": "f7f9381a96572ea171851acd2532432305b2a8f81f26d01f389f8b7b6a7858ba",
+   "resourceHash": "c91d34cfc2e290059648eea29563ae3f10d78e309d9a5658020cf6271ba7855d",
+   "prefixHash": "90a84a25d804edb4d7c298b818e24697a6273ce45abfb1ba7907fe52d14551a8",
+   "expect": {
+    "edgeImage": "df16613d97531e914c6ea7bec4a97d0145e9f6447f6faf2fb02964c241a2e66a",
+    "d3d12Image": "df16613d97531e914c6ea7bec4a97d0145e9f6447f6faf2fb02964c241a2e66a"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "64b9983b51892321d73ff4256e7933a3768f2aa32eefd471d44ff922e7c09d9a": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 420,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "b9ac318812d367824d570994243a1f0d80c84919bd2353a4faa49fa92ac83e82",
+   "prefixHash": "24e29b26e2700bfdd8ebd9b72f09e759665b2528193946673c7858db5688e593",
+   "expect": {
+    "edgeImage": "e08d9054e72ac4ef0ef66f8df260ea60a6e0abcb29d46f17d9a62cb7e5572566",
+    "d3d12Image": "e08d9054e72ac4ef0ef66f8df260ea60a6e0abcb29d46f17d9a62cb7e5572566"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "4ff85de2867f3930aefdbf5d7d06eb06ed83013d05d76fe188e85ef46218c3b0": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 421,
+   "stateHash": "310bd531cd1c3f93df62bdb72d7905a35937bcfa01fc09b0fea03f7d4fa14636",
+   "resourceHash": "fd13de05fefbedc75691bdc780a9692fc8e4ab8beb57542564631de472ded19d",
+   "prefixHash": "fd2d9e3ff0e652b56445371811eb974cc4734d7a0133ea969690d5056bc18e20",
+   "expect": {
+    "edgeImage": "b7d461003be87e64d2fd3a3de693c795db4ad30c82e4715f5ae80dde930fd8d6",
+    "d3d12Image": "b7d461003be87e64d2fd3a3de693c795db4ad30c82e4715f5ae80dde930fd8d6"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "9263ebaf22e2ea3ce635c60ab363f3f3b641175220cb80bb2619b7e114853a14": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 422,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "1beab3402626879dcb43a6ef40362b9e8e457dfaee9366e9d9dc1fa3594710c5",
+   "prefixHash": "51e4b6341b072f897623fd2fa69cd1697b5f924142564c80ca8b727b5bc7b284",
+   "expect": {
+    "edgeImage": "39e661746662bea3cd328eca142c12efbbe7f21c3ef7139c8a3c1eb0498c576b",
+    "d3d12Image": "39e661746662bea3cd328eca142c12efbbe7f21c3ef7139c8a3c1eb0498c576b"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "b14e927e1200055cf1fdc613f3185d2e3d05298ecca1814af63587436ad88807": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 423,
+   "stateHash": "f44384cee9cf777dcbfb273b6df2e18ff4b1b25368e721c53945c917f8a35460",
+   "resourceHash": "e457cebb9144bc910742cb0850a6356ab2b1016ffefca62e5be3a716ace0f85d",
+   "prefixHash": "61f09e476b5c70ea4709a36ab929384d1092cb0f576ea943fe6dd43cd88d1cdb",
+   "expect": {
+    "edgeImage": "cc705eb703c53d066133ae255b6e94d2cf65ede02a72047578d8edc40974e0d2",
+    "d3d12Image": "cc705eb703c53d066133ae255b6e94d2cf65ede02a72047578d8edc40974e0d2"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "dcdf38b1821d356371e0e7fe99c3a32b41d77f1ce4a0e4bbebbd84329f8ca006": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 424,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "13303d6bda271281e60ed8233a8b9a51147099973434b332e586547df59a3caa",
+   "prefixHash": "b1819713c77d4ec5a5b1dd201654176e1c0b1340a118dbaea05713a092942256",
+   "expect": {
+    "edgeImage": "3a17c8e90ed9d752795b8af770aa9bf1a18167bcd490c457664b17ae3c51f438",
+    "d3d12Image": "3a17c8e90ed9d752795b8af770aa9bf1a18167bcd490c457664b17ae3c51f438"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "36ca0055e7a23297f739b37b5984cc17f593a3bfc1ef32ed51b1c485ed4bb1de": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 425,
+   "stateHash": "f7f9381a96572ea171851acd2532432305b2a8f81f26d01f389f8b7b6a7858ba",
+   "resourceHash": "5a06797283580e84803fccb4e801dd4a9dfea3fa2950633fc6b40bd32c5c2418",
+   "prefixHash": "f8f1c276936fc6f3fccfc194dc4242cfef7ceab9ba9b2df19e4712489c154942",
+   "expect": {
+    "edgeImage": "7146ea4ce962cf14c42db9e7d7bcec4519a5980be140b1818ca79f895032f382",
+    "d3d12Image": "7146ea4ce962cf14c42db9e7d7bcec4519a5980be140b1818ca79f895032f382"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "faf61b8d1d7d838030d571e537897694a576072e087848f3142eb88966b23948": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 426,
+   "stateHash": "8ea01078972717978f52b4b54ca2f4c51560327327bbe99527d2b421b04efdf8",
+   "resourceHash": "fec97e5e73de6c900fc1878be743b325c6130eb2beeed22cd9bca71b526eea5a",
+   "prefixHash": "8f66de28229356d73056cbac8234d55577da811a0393fe7d0310d60c61909b63",
+   "expect": {
+    "edgeImage": "41449f76b0b634d84b99cf62ab8e2aa49df5776c4e4bc9e0f704cb6153016319",
+    "d3d12Image": "41449f76b0b634d84b99cf62ab8e2aa49df5776c4e4bc9e0f704cb6153016319"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "dca60fdfef1ad826e2834a7cf495a2bc5920b6fd10197aa09304920858a65e07": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 427,
+   "stateHash": "25ffdda0eaf2a2de322a9c58647350e7dbdb598244e5a82407c3d6ff3104c0d8",
+   "resourceHash": "262e4b6cd015f5bc3438e954c909b17016539c7bad0ced578abb7f0155459b3d",
+   "prefixHash": "d1ddaae16d0e4ddf09386b2b6e322359dc6cc399998c3c3fe6d37a5446ce816b",
+   "expect": {
+    "edgeImage": "014498248c6332ad7ea118e11b12852d82b22e54d2c23a0596bcae4162309a73",
+    "d3d12Image": "014498248c6332ad7ea118e11b12852d82b22e54d2c23a0596bcae4162309a73"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "846b4c268a6aa161395e3b53e778ba35d84b8550a56fe17cc147bf8ce54a0acf": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 428,
+   "stateHash": "f75c5e9128cc71f1e32a0ec1818d9f53ddbacc2a77672d8bebaa1b3a3589cd4b",
+   "resourceHash": "b9e60d00f42af4bf61915568044528b204d5475c688b60b49c8efcedde48f0cf",
+   "prefixHash": "c9ecf4f928f2fdd35ea48668e08c4f334edf33caa22cbf44c53bc2026eb3bc8c",
+   "expect": {
+    "edgeImage": "014498248c6332ad7ea118e11b12852d82b22e54d2c23a0596bcae4162309a73",
+    "d3d12Image": "014498248c6332ad7ea118e11b12852d82b22e54d2c23a0596bcae4162309a73"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "e0c4fa3f95ac0a2b6536bb65d9665b03346bbe68586bdadc4168071d220be9d2": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 429,
+   "stateHash": "dee3629feed21954f66b3a68f3dec2df07032cefc23bb3cdfd0cce049895c5de",
+   "resourceHash": "38ee1feb1036c9ff567ec47f341439b827541b0aec15720f68040a7839934df4",
+   "prefixHash": "11742a32956884b247d235caff0df82c1339c40f0c36287d6dc5807dd6212231",
+   "expect": {
+    "edgeImage": "ae4d76731e316423995da79ae9181cbfc771a0ce3bab2c261493373a5ce77db6",
+    "d3d12Image": "ae4d76731e316423995da79ae9181cbfc771a0ce3bab2c261493373a5ce77db6"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "2e04d3aaf515e5eb244248c666d483ef70f509665fea6f8dec28d8612fe5d729": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 430,
+   "stateHash": "dee3629feed21954f66b3a68f3dec2df07032cefc23bb3cdfd0cce049895c5de",
+   "resourceHash": "90c23a2602916e5f5f66ef6582be8aa3cbcc6b88d93d8962acfd60e7ce367e19",
+   "prefixHash": "1d3d69c6c7b6259131eced913d7f6c7730ffe18c61428e9b7f5be8c2c5d20ea1",
+   "expect": {
+    "edgeImage": "1d39b5cf60e252bf7b29e07ae6381bb7e82d5d683e82b7b6cf24c75e59fe41f0",
+    "d3d12Image": "1d39b5cf60e252bf7b29e07ae6381bb7e82d5d683e82b7b6cf24c75e59fe41f0"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "4f52097a3b327e916e464074696544a3db0c1cea6110709652baae1280eea589": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 431,
+   "stateHash": "59cc506510ce117ff5b0b82aa8b907d8469b983f9e9b45665f0ba4a6d1109729",
+   "resourceHash": "d0af6cb292551af4e4be88b4cdfbdb4c08fc59a5e254657af87fc10be89d6922",
+   "prefixHash": "f6b7517d27fd80e2febda64f7e8193e3db999110fb8875eae05b662ff372c396",
+   "expect": {
+    "edgeImage": "d1e927ea9808e0c40fab3f37df2a597d1e749f198fb5cab1a94f158bc033a66a",
+    "d3d12Image": "d1e927ea9808e0c40fab3f37df2a597d1e749f198fb5cab1a94f158bc033a66a"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "1066056801bd60f14997c36ce27b93b1386360a578313ff1622e6e7eef990a74": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 432,
+   "stateHash": "dee3629feed21954f66b3a68f3dec2df07032cefc23bb3cdfd0cce049895c5de",
+   "resourceHash": "e850d46f1ded6adc064785cfc51fe976aed72a568355cd8e4f59427a7c7ee57f",
+   "prefixHash": "6a130aee06550e458f4eb193f5a831bf6de3c84cd742df1f6334c9fff1d185a9",
+   "expect": {
+    "edgeImage": "dc28d24b684d7f52285c0f8bcd07a8265c2a0ec690c637d427f831ed151dd9dd",
+    "d3d12Image": "dc28d24b684d7f52285c0f8bcd07a8265c2a0ec690c637d427f831ed151dd9dd"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "721b6b58e844d3af4f7c2b33ae94af88f60784e9c43819c23e7c2d0e37565e1c": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 433,
+   "stateHash": "dee3629feed21954f66b3a68f3dec2df07032cefc23bb3cdfd0cce049895c5de",
+   "resourceHash": "27783b06cc40c320210cbc5ccc323db4d998c165d4cfb18d99c4e271ad637366",
+   "prefixHash": "857ae180bb8d71c2c4beae1c76dde7f35341d747a14bef451779fee81756258a",
+   "expect": {
+    "edgeImage": "d018fb3deced748f0d2c00d2826c82584db366b25d253c563e54edd57146232e",
+    "d3d12Image": "d018fb3deced748f0d2c00d2826c82584db366b25d253c563e54edd57146232e"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "45fb46de22c482934620a79339312a26f902758be43178d89d904d6e05f9dff7": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 434,
+   "stateHash": "59cc506510ce117ff5b0b82aa8b907d8469b983f9e9b45665f0ba4a6d1109729",
+   "resourceHash": "56478f941c662befb3fb009baea5fbe6241adac5bd5029649d97b8c52bc359bc",
+   "prefixHash": "a1dd4500506d24f5641eb26ac2df27148fb67cfba107ab31b25c96e9238457f7",
+   "expect": {
+    "edgeImage": "e652c63b3348431b66a90d958a5b4292a06516250ff8557b7305d9f5d8728043",
+    "d3d12Image": "e652c63b3348431b66a90d958a5b4292a06516250ff8557b7305d9f5d8728043"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "3a732f19f352f96c8919014181e8445efb9aaa1bcc52e88318963eb18abf1fe6": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 435,
+   "stateHash": "f043c0bdf884897a4fb50fb102b8b9cc4e2eca591ae4dcb446a3309d093626e3",
+   "resourceHash": "bb8a56a2608a7ef88d69a2fdc84cc1d50dbac8170d6eabe17bad052492503010",
+   "prefixHash": "333a584eaf4daed1b736054d69b36cd7c4cd5b8213c1c1bba556b16aa02a5dd7",
+   "expect": {
+    "edgeImage": "7c6a1c13b392ac8147a57e01d273b1c82e7a7a52bd391d0367ebf3edec082a08",
+    "d3d12Image": "7c6a1c13b392ac8147a57e01d273b1c82e7a7a52bd391d0367ebf3edec082a08"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "6d9b557692d144164e511a38adebc9129e68d4ceb7117d3bb944ecace8b21888": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 436,
+   "stateHash": "310bd531cd1c3f93df62bdb72d7905a35937bcfa01fc09b0fea03f7d4fa14636",
+   "resourceHash": "0844b629077492fa2f608d89139f45a2220bbfdde8796494f568989e077ae451",
+   "prefixHash": "0fa22e14bbeb0a75aa40dd88f74954955ccc1c067306a5a8acda2697ae6e14bd",
+   "expect": {
+    "edgeImage": "66408cc9a3ff535dc6361f983661d7a73a60724c6cfc2c19f564d44fb231794e",
+    "d3d12Image": "66408cc9a3ff535dc6361f983661d7a73a60724c6cfc2c19f564d44fb231794e"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "43362084221a066d7e55a0be43b9f73b0037ce4a88edf90a3c292a606dfe71cd": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 437,
+   "stateHash": "f043c0bdf884897a4fb50fb102b8b9cc4e2eca591ae4dcb446a3309d093626e3",
+   "resourceHash": "b538fb8f2f7044cd9fdf0e11d5b4576f46ebc37f8f4c880d60d178fa433a8479",
+   "prefixHash": "fad430c048354f0a1b74b15e6163b7da96e7deaed1c9d1a281c75c23eb9dfb5b",
+   "expect": {
+    "edgeImage": "81de5a789e27f5012b2990cab9747a757dfd9b80ec9730cea0c4884e378ebc39",
+    "d3d12Image": "81de5a789e27f5012b2990cab9747a757dfd9b80ec9730cea0c4884e378ebc39"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  },
+  "6bbc18cdb585ed957cfa5cc7d1f11f8aef1479bbf1db2e93ed068db83bbea055": {
+   "status": "validated",
+   "class": "replay-consistent",
+   "draw": 438,
+   "stateHash": "25ffdda0eaf2a2de322a9c58647350e7dbdb598244e5a82407c3d6ff3104c0d8",
+   "resourceHash": "8b999d786dbbe09249414fb3a07fef0705a6af173e9479765ae30e2f4dc69864",
+   "prefixHash": "729e7cb70284944dc38c59542021b93bd01c74d4df11b29de4eed3e28ce7dbdc",
+   "expect": {
+    "edgeImage": "15f1bd9c1601c7196250c0324ceac663047b03d9ce8b9583792b6a52df0fb1d9",
+    "d3d12Image": "15f1bd9c1601c7196250c0324ceac663047b03d9ce8b9583792b6a52df0fb1d9"
+   },
+   "evidence": {
+    "run": "artifacts/gpu-capture/runs/v2-44",
+    "captureSha256": "5ad532f57d18216ec1ac41214752059c682986b7c0e077786264ced84496345d",
+    "browser": "155.0.4283.45",
+    "adapter": "lovelace",
+    "date": "2026-10-11"
+   },
+   "meaning": "Edge readback == native Dawn D3D12 replay (RenderDoc) byte for byte. Regression lock of OUR renderer; fidelity to the console NOT verified."
+  }
+ }
+}

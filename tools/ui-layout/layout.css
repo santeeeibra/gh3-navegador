@@ -1,0 +1,81 @@
+/* Three columns sized by the viewport; no per-frame layout work. */
+body.gh3Workspace { --workspace-header: 104px; padding: 8px 12px !important; height: 100dvh; box-sizing: border-box; overflow: hidden; }
+body.gh3Workspace main { max-width: 1920px !important; height: 100%; display: flex; flex-direction: column; }
+body.gh3Workspace header.hero.pro { flex: 0 0 var(--workspace-header); padding: 0 0 8px !important; justify-content: center; box-sizing: border-box; }
+body.gh3Workspace header.hero.pro img { height: 96px !important; width: auto; }
+body.gh3Workspace main > :not(header.hero):not(#gh3Row) { display: none !important; }
+body.gh3Workspace #gh3Row { display: grid !important; grid-template-columns: 236px minmax(0, 1fr) 292px; gap: 14px !important; flex: 1; min-height: 0; align-items: stretch; margin: 0 !important; }
+body.gh3Workspace:not(.loaderStarted) #gh3Row { display: grid !important; }
+body.gh3Workspace header.hero.pro img { animation: none; }
+body.gh3Workspace #gh3LandingStage { min-width: 0; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+body.gh3Workspace #gh3LandingStage[hidden] { display: none !important; }
+body.gh3Workspace #gh3LandingStage #loaderPanel { width: 100%; box-sizing: border-box; min-height: 0; padding: 16px !important; border: 1px solid #6b5b44; background: linear-gradient(160deg,#211a26,#110e16); }
+body.gh3Workspace #gh3LandingStage #gh3Promo { margin-bottom: 16px; }
+body.gh3Workspace #gh3LandingStage #gh3Promo video { max-height: max(110px,calc(100dvh - var(--workspace-header) - 230px)); object-fit: contain; }
+body.gh3Workspace #gh3LandingStage #loaderPanel .row { margin: 8px 0 !important; }
+body.gh3Workspace #gh3LandingStage #loaderPlay { min-height: 44px; font-size: 26px; padding: 10px 40px 8px; }
+body.gh3Workspace #gh3LandingStage .gh3FeedbackOpen { margin: 10px 0 0; min-height: 40px; padding: 8px 12px; font-size: 14px; }
+body.gh3Workspace #gh3ControlsRail,
+body.gh3Workspace #gh3Panel { min-width: 0; min-height: 0; box-sizing: border-box; border: 1px solid #6b5b44; border-radius: 12px; background: linear-gradient(160deg,#211a26,#110e16); box-shadow: inset 0 0 0 3px #0009; padding: 14px !important; }
+body.gh3Workspace #gh3Panel { position: static !important; width: auto !important; max-height: none !important; display: flex; flex-direction: column; overflow: hidden !important; margin: 0 !important; }
+body.gh3Workspace #gh3Panel .top { flex: 0 0 auto; gap: 6px; }
+body.gh3Workspace #gh3Panel .top button { min-width: 0; min-height: 54px; padding: 8px 3px; font-size: 15px !important; letter-spacing: .03em; }
+body.gh3Workspace #gh3Panel .tabs { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); flex: 0 0 auto; gap: 2px; margin: 14px 0 10px; }
+body.gh3Workspace #gh3Panel .tabs button { min-width: 0; font-size: 13px !important; padding: 10px 0 8px; letter-spacing: .025em; }
+body.gh3Workspace #gh3Panel .tabs [data-tab="ctrl"] { display: none !important; }
+#gh3SettingsBody { min-height: 0; }
+body.gh3Workspace #gh3SettingsBody { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; padding: 2px 4px 10px 2px; overscroll-behavior: contain; }
+body.gh3Workspace #gh3SettingsBody:focus-visible { outline: 2px solid #c9a45c; outline-offset: -2px; }
+body.gh3Workspace #gh3SettingsBody .row { flex-wrap: wrap; }
+body.gh3Workspace #gh3SettingsBody select { max-width: 100%; }
+body.gh3Workspace #gh3SettingsBody input[type="range"] { min-width: 60px; }
+body.gh3Workspace #r5Box { align-self: center; width: 100% !important; min-height: 0 !important; max-height: 100%; height: auto; aspect-ratio: 16/9; padding: 0 !important; margin: 0 !important; border-radius: 12px !important; background: #050407 !important; }
+body.gh3Workspace #r5Canvas { display: block; width: 100% !important; height: 100% !important; max-height: none !important; max-width: none !important; object-fit: contain; margin: 0 !important; }
+/* A tall viewport must never crop a 16:9 game in a short browser window. */
+body.gh3Workspace #gh3Row > #r5Box { max-width: calc((100dvh - var(--workspace-header) - 16px) * 16 / 9); justify-self: center; }
+body.gh3Workspace #gameLoading { padding: clamp(14px,2vw,28px); }
+body.gh3Workspace #gameLoading h2 { font-size: clamp(20px,2.4vw,32px); }
+body.gh3Workspace #gh3ControlsRail #controllerGuide { padding: 0 !important; margin: 0; border: 0; background: transparent; box-shadow: none; }
+body.gh3Workspace #gh3ControlsRail .eyebrow { display: none; }
+body.gh3Workspace #gh3ControlsRail h2 { font: 600 22px/1 var(--rock,system-ui); text-transform: uppercase; letter-spacing: .06em; margin: 2px 0 12px; }
+body.gh3Workspace #gh3ControlsRail .guideLive { font-size: 10px; padding: 2px 6px; }
+body.gh3Workspace #gh3ControlsRail .guideSwitch { margin: 4px 0 8px; padding: 2px; }
+body.gh3Workspace #gh3ControlsRail .guideSwitch button { min-height: 30px; padding: 4px 8px; font: 600 14px/1 var(--rock,system-ui); text-transform: uppercase; }
+body.gh3Workspace #gh3ControlsRail .guideContext { margin: 0; gap: 6px; font-size: 11px; }
+body.gh3Workspace #gh3ControlsRail .guideContext select { min-height: 28px; padding: 3px 4px; max-width: 140px; font-size: 11px; }
+body.gh3Workspace #gh3ControlsRail .guideColumns { margin: 12px 0 4px; font-size: 9px; }
+body.gh3Workspace #gh3ControlsRail .guideRow { margin: 3px 0; min-height: 29px; padding: 4px 5px !important; gap: 5px; box-sizing: border-box; border-radius: 6px; }
+body.gh3Workspace #gh3ControlsRail .guideAction { display: flex; flex: 1; justify-content: space-between; align-items: center; min-width: 0; gap: 4px; }
+body.gh3Workspace #gh3ControlsRail .guideActionName { font: 600 13px/1.15 var(--rock,system-ui) !important; text-transform: uppercase; gap: 5px; }
+body.gh3Workspace #gh3ControlsRail .keycaps { margin: 0; gap: 3px; flex-wrap: nowrap; }
+body.gh3Workspace #gh3ControlsRail kbd { font: 600 10px/1.4 system-ui !important; min-width: 12px; padding: 1px 4px !important; white-space: nowrap; }
+body.gh3Workspace #gh3ControlsRail .padGlyph { min-width: 20px; min-height: 20px; width: auto; height: 20px; padding: 0 3px; font-size: 10px; flex-shrink: 0; }
+body.gh3Workspace #gh3ControlsRail .guideHint { font-size: 10px; line-height: 1.4; margin: 10px 0 0; }
+body.gh3Workspace #gh3ControlsRail #controllerGuide > .note { display: none; }
+body.gh3Workspace #gh3ControlsRail[data-mode="song"] .guideRow:is([data-action="izquierda"],[data-action="derecha"],[data-action="Volver (menú)"]) { display: none; }
+#gh3TapeHome { margin-top: 12px; }
+#gh3TapeHome #gh3Tape { width: 92px; max-height: 140px; height: 140px !important; margin: 0 auto; }
+/* The drawer and its shade must share the root stacking context. */
+html.gh3Mobile body.gh3DrawerReady main { z-index: auto !important; }
+#gh3CalibrationHelp { border-top: 1px solid #6b5b4466; margin-top: 18px; padding-top: 6px; font-size: 12px; line-height: 1.6; }
+#gh3CalibrationHelp h3 { margin: 8px 0; font-size: 16px; }
+#gh3CalibrationHelp ol { padding-left: 20px; }
+#gh3CalibrationHelp li { margin-bottom: 8px; }
+#gh3StrumKeys { font-weight: 700; color: #ffce73; }
+#gh3FocusGame { width: 100%; min-height: 44px; padding: 10px !important; }
+@media (min-width: 1500px) { body.gh3Workspace #gh3Row { grid-template-columns: 252px minmax(0,1fr) 320px; gap: 18px !important; } }
+@media (max-height: 700px) {
+  body.gh3Workspace { --workspace-header: 76px; }
+  body.gh3Workspace header.hero.pro img { height: 68px !important; }
+  body.gh3Workspace #gh3Row { gap: 10px !important; }
+  body.gh3Workspace #gh3ControlsRail,body.gh3Workspace #gh3Panel { padding: 10px !important; }
+  body.gh3Workspace #gh3ControlsRail .guideRow { min-height: 24px; padding: 2px 4px !important; margin: 2px 0; }
+  body.gh3Workspace #gh3ControlsRail h2 { margin-bottom: 6px; }
+  body.gh3Workspace #gh3ControlsRail .guideHint { margin-top: 6px; }
+}
+@media (max-height: 600px) {
+  body.gh3Workspace { --workspace-header: 56px; }
+  body.gh3Workspace header.hero.pro img { height: 48px !important; }
+  body.gh3Workspace #gh3ControlsRail .guideRow:is([data-action="izquierda"],[data-action="derecha"],[data-action="Volver (menú)"]) { display: none; }
+  body.gh3Workspace #gh3ControlsRail .guideHint { display: none; }
+}

@@ -1,0 +1,28 @@
+// Meaningful regressions: real GPU pixels across revision updates, failure
+// recovery and bounded inactive texture cache; not snapshots of implementation.
+import fs from 'node:fs';import path from 'node:path';import {createServer} from 'node:http';import {chromium} from 'playwright';
+const turn='artifacts/PRUEBAS-EN-CURSO.md',token='codex-scene-check-'+Date.now(),out='artifacts/r5-scene-mobile/gpu-check.json';
+if(process.argv.includes('--wait'))while(!fs.readFileSync(turn,'utf8').includes('Estado: LIBRE'))await new Promise(r=>setTimeout(r,5000));
+if(!fs.readFileSync(turn,'utf8').includes('Estado: LIBRE'))throw Error('Turno ocupado');
+fs.writeFileSync(turn,`Estado: OCUPADO\nQuién: Codex\nReserva: ${token}\nQué: regresiones GPU revisión/caché/submit; SIN GH3\nDesde: ${new Date().toISOString()}\nFin: estimado 2 min\n`);
+let browser,server;const report={errors:[]};
+try{
+ server=createServer((req,res)=>{const u=new URL(req.url,'http://local').pathname;if(u==='/'){res.setHeader('Content-Type','text/html');return res.end('<canvas width="1280" height="720"></canvas>');}const p=path.resolve('.'+u);if(!p.startsWith(path.resolve('tools')+path.sep)){res.writeHead(403).end();return;}res.setHeader('Content-Type','text/javascript');fs.createReadStream(p).on('error',()=>res.destroy()).pipe(res);});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage();page.on('pageerror',e=>report.errors.push(e.message));await page.goto('http://127.0.0.1:'+server.address().port+'/');
+ report.result=await page.evaluate(async()=>{
+  const {createLiveSongRenderer}=await import('/tools/r5-scene-mobile/src/renderer.mjs'),adapter=await navigator.gpu.requestAdapter(),device=await adapter.requestDevice(),errors=[];device.addEventListener('uncapturederror',e=>errors.push(e.error.message));let target;const createTex=device.createTexture.bind(device);device.createTexture=d=>{const t=createTex(d);if(!target&&(d.usage&GPUTextureUsage.RENDER_ATTACHMENT)&&(d.usage&GPUTextureUsage.COPY_SRC))target=t;return t;};
+  const shaders={V:{id:'V',stage:'vert',code:'@vertex fn main(@builtin(vertex_index)i:u32)->@builtin(position)vec4<f32>{return vec4(array<vec2<f32>,3>(vec2(-1.,-1.),vec2(3.,-1.),vec2(-1.,3.))[i],0.,1.);}'},P:{id:'P',stage:'frag',code:'@group(3) @binding(0) var xe_texture0_2d_u:texture_2d_array<f32>; @group(3) @binding(1) var xe_sampler0_fff:sampler; @fragment fn main()->@location(0)vec4<f32>{return textureSampleLevel(xe_texture0_2d_u,xe_sampler0_fff,vec2(.5,.5),0,0.);}'}};
+  const renderer=await createLiveSongRenderer(device,shaders),context=document.querySelector('canvas').getContext('webgpu');context.configure({device,format:'rgba8unorm',usage:GPUTextureUsage.COPY_DST|GPUTextureUsage.RENDER_ATTACHMENT});
+  const sampler={mag:0,min:0,mip:0,clampX:2,clampY:2};let texture={key:'same-allocation',revision:1,width:4,height:4,format:'rgba8unorm',bytesPerRow:16,rowsPerImage:4,data:new Uint8Array(64)};for(let i=0;i<64;i+=4)texture.data.set([255,0,0,255],i);
+  const input={manifest:{vs:'V',ps:'P',blend:65537,raster:0,depth:0,stencil:0,writeMask:15,scissor:[0,0,1280,720],indices:3},assets:{'indices.bin':new Uint8Array(new Uint32Array([0,1,2]).buffer)},textures:[{slot:0,sampler,texture}]};
+  const pixel=async()=>{const b=device.createBuffer({size:256,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ}),e=device.createCommandEncoder();e.copyTextureToBuffer({texture:target,origin:[640,360]},{buffer:b,bytesPerRow:256},[1,1]);device.queue.submit([e.finish()]);await b.mapAsync(GPUMapMode.READ);const p=[...new Uint8Array(b.getMappedRange()).slice(0,4)];b.unmap();b.destroy();return p;};
+  const render=()=>renderer.render([input],context);await render();const red=await pixel();texture.revision=2;for(let i=0;i<64;i+=4)texture.data.set([0,255,0,255],i);await render();const green=await pixel();texture.revision=3;for(let i=0;i<64;i+=4)texture.data.set([255,0,0,255],i);await render();const restored=await pixel();
+  const create=device.createCommandEncoder.bind(device);let inject=true;device.createCommandEncoder=(...args)=>{const e=create(...args);if(inject){e.finish=()=>{inject=false;throw Error('Injected finish failure');};}return e;};const failed=await render();device.createCommandEncoder=create;await render();const recovered=await pixel();
+  texture={key:'cache0',revision:1,width:1024,height:1024,format:'rgba8unorm',bytesPerRow:4096,rowsPerImage:1024,data:new Uint8Array(4*1024*1024)};input.textures[0].texture=texture;
+  let max=0;for(let i=0;i<20;i++){texture.key='cache'+i;await render();max=Math.max(max,renderer.stats.residentTextureBytes);}
+  const ok=JSON.stringify(red)==='[255,0,0,255]'&&JSON.stringify(green)==='[0,255,0,255]'&&JSON.stringify(restored)===JSON.stringify(red)&&JSON.stringify(recovered)===JSON.stringify(red)&&failed.accepted===0&&renderer.stats.gpuErrors===1&&max<=64*1024*1024&&renderer.stats.textureEvictions>0&&errors.length===0;
+  device.destroy();return {ok,red,green,restored,recovered,failedAccepted:failed.accepted,maxResidentTextureBytes:max,stats:renderer.stats,errors};
+ });report.ok=report.result.ok&&report.errors.length===0;if(!report.ok)process.exitCode=1;
+}catch(e){report.error=e.stack;process.exitCode=1;}
+finally{await browser?.close();if(server)await new Promise(r=>server.close(r));if(fs.readFileSync(turn,'utf8').includes(token))fs.writeFileSync(turn,`Estado: LIBRE\nQuién: Codex\nQué: GPU checks terminados; procesos propios cerrados\nFin: ${new Date().toISOString()}\n`);fs.writeFileSync(out,JSON.stringify(report,null,1));}
+console.log(JSON.stringify(report));

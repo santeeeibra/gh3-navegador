@@ -1,0 +1,32 @@
+// Independent local preview. Never deploys or changes 2-PUBLICAR-GH3.cmd.
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+const taskRoot=path.resolve('artifacts/monitor-ubicacion');
+const output=path.join(taskRoot,'preview/.vercel/output');
+const cmd=await fs.readFile('2-PUBLICAR-GH3.cmd','utf8');
+const source=path.resolve(cmd.match(/^set GH3_SRC=(.+)$/m)[1].trim());
+const dest=path.join(output,'static/gh3');
+await fs.mkdir(dest,{recursive:true});
+const hash=file=>fs.readFile(file).then(bytes=>createHash('sha256').update(bytes).digest('hex'));
+const names=['gh3-web.js','gh3-web.wasm','manifest.json'];
+const before=Object.fromEntries(await Promise.all(names.map(async name=>[name,await hash(path.join(source,name))])));
+for(const entry of await fs.readdir(source,{withFileTypes:true}))if(entry.isFile())await fs.copyFile(path.join(source,entry.name),path.join(dest,entry.name));
+// Use the current routing as a read-only template, outside the real deploy folder.
+await fs.copyFile('artifacts/privado/deploy-app/.vercel/output/config.json',path.join(output,'config.json'));
+const run=(script,args)=>execFileSync(process.execPath,[script,...args],{stdio:'inherit'});
+run('tools/analytics/stage-feedback.mjs',[dest]);
+run('tools/analytics/stage-dashboard.mjs',[path.join(output,'static/estadisticas')]);
+run('tools/analytics/patch-vercel-config.mjs',[output]);
+const after=Object.fromEntries(await Promise.all(names.map(async name=>[name,await hash(path.join(dest,name))])));
+if(JSON.stringify(before)!==JSON.stringify(after))throw Error('Cambió el motor o manifiesto.');
+const html=await fs.readFile(path.join(dest,'index.html'),'utf8');
+if(html.indexOf('name="gh3-build"')>html.indexOf('src="gh3-analytics.js"'))throw Error('La versión debe leerse antes de iniciar estadísticas.');
+const version=html.match(/name="gh3-build" content="([^"]+)"/)[1];
+const once=await hash(path.join(dest,'index.html'));
+run('tools/analytics/patch-vercel-config.mjs',[output]);
+if(once!==await hash(path.join(dest,'index.html')))throw Error('Staging no idempotente.');
+const report={source,output,version,engine_sha256:after,unchanged:true,no_deploy:true,no_database_mutation:true,game_started:false};
+await fs.writeFile(path.join(taskRoot,'prepared.json'),JSON.stringify(report,null,2));
+console.log(JSON.stringify(report,null,2));

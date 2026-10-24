@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adelanto gráfico · Riff Duel</title>
+<style>
+:root{color-scheme:dark;font-family:Segoe UI,system-ui,sans-serif;background:#111114;color:#f2eee7}
+*{box-sizing:border-box}body{margin:0}main{max-width:1120px;margin:auto;padding:46px 28px 36px}
+.eyebrow{color:#ecbb70;font-size:12px;letter-spacing:2px;font-weight:700}h1{font-size:clamp(32px,6vw,58px);line-height:1.05;letter-spacing:-2px;margin:18px 0}
+.intro{color:#b6b1a9;max-width:650px;font-size:17px;line-height:1.65}.notice{border-left:3px solid #ecbb70;padding:10px 16px;color:#dfcaa6;font-size:14px;background:#191719;margin:25px 0}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:28px 0}
+button,.link{font:inherit;padding:12px 18px;border:1px solid #48434b;border-radius:6px;color:#f2eee7;background:#252329;text-decoration:none;cursor:pointer}button:hover,.link:hover{background:#343038}button.primary{background:#ecbb70;color:#21170b;border-color:#ecbb70}button:disabled{opacity:.5;cursor:wait}
+.status{padding:18px 0 22px;border-top:1px solid #363238;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.status span{color:#b6b1a9}.status strong{color:#8cdbb4}.status strong.failure{color:#ff9385}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.tile{margin:0;background:#1b1a1f;border:1px solid #363238;border-radius:8px;overflow:hidden}.image{height:176px;background:#151419;display:flex;align-items:center;justify-content:center}.tile canvas{width:100%;height:100%;image-rendering:pixelated;object-fit:fill}.tile figcaption{padding:16px;display:flex;justify-content:space-between;gap:8px;font-size:14px}.tile small{color:#b6b1a9}.pending{color:#77727e;font-size:14px}.ok{color:#8cdbb4}.bad{color:#ff9385}.detail{font-size:14px;color:#b6b1a9;line-height:1.65;margin:24px 0}.detail:empty{display:none}footer{margin-top:28px;color:#8e8993;font-size:13px;line-height:1.6}a{color:#ecbb70}
+@media(max-width:700px){main{padding:26px 18px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.image{height:130px}.tile figcaption{flex-direction:column;padding:12px}h1{letter-spacing:-1px}}
+@media(prefers-reduced-motion:no-preference){.tile.loaded canvas{animation:reveal .35s ease-out}@keyframes reveal{from{opacity:0}to{opacity:1}}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">RIFF DUEL · ADELANTO LOCAL</div>
+<h1>Así va la carga gráfica.</h1>
+<p class="intro">Estas seis imágenes se crean en un hilo, se cargan en la placa gráfica y vuelven al navegador para comprobar que llegaron completas.</p>
+<p class="notice">Prueba técnica con imágenes propias. Todavía no son texturas ni escenas de Guitar Hero III.</p>
+<div class="toolbar"><button class="primary" id="repeat">Volver a cargar</button><a class="link" href="/graphics.html">Ver escena 3D en movimiento →</a><button id="corrupt">Probar un dato alterado</button><button id="timeout">Probar una espera perdida</button></div>
+<div class="status" role="status" aria-live="polite"><strong id="status">Preparando la carga…</strong><span id="count">0 de 6 imágenes comprobadas</span></div>
+<section class="grid" id="gallery" aria-label="Imágenes leídas de la GPU"></section>
+<p class="detail" id="detail"></p>
+<footer>El próximo paso es conectar esta carga con los formatos y las órdenes gráficas de Xbox 360. La escena 3D es otra prueba propia del proyecto.</footer>
+</main><script src="/build/probe.js"></script><script type="module" src="/preview.js"></script></body></html>

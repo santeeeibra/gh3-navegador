@@ -1,0 +1,9 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GH3 · preparación privada</title>
+<style>:root{color-scheme:dark}body{font:17px system-ui;margin:24px auto;padding:0 18px;max-width:600px;background:#111;color:#eee;line-height:1.5}h1{font-size:26px}button,a,input{font:inherit}button{padding:12px;margin:12px 0}a{color:#9bf}progress{width:100%}#status{white-space:pre-wrap;overflow-wrap:anywhere}small{color:#bbb}</style></head><body>
+<h1>Preparar GH3 en tu iPhone</h1><p>Prueba privada de arranque. Elegí el paquete preparado desde tu copia. Sus archivos se guardan en este navegador y <b>no se suben al sitio</b>.</p>
+<p>Usá el paquete actualizado <b>RGBA</b>: convierte las texturas al cargarlas y ya no exige soporte BC. El arranque completo todavía debe comprobarse en tu iPhone.</p>
+<label>Paquete desde Archivos <input id="file" type="file" accept=".gh3mobile,application/octet-stream"></label><br>
+<button id="import" disabled>Guardar paquete en este navegador</button><button id="pause" disabled>Pausar</button>
+<progress id="progress" max="1" value="0"></progress><p id="status" role="status">Elegí el archivo .gh3mobile para empezar.</p>
+<p><a id="play" hidden href="private/index.html">Abrir prueba de arranque</a></p><p><small>Si se interrumpe, elegí el mismo archivo para continuar. La partida se guarda por separado. No borres datos del sitio. Los controles táctiles de canción se agregarán después de comprobar el arranque.</small></p>
+<script src="private-store.js"></script><script src="private-import.js"></script></body></html>

@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+const d = JSON.parse(fs.readFileSync(process.argv[2] + '/frames.json'));
+const r = JSON.parse(fs.readFileSync(process.argv[2] + '/resultado.json'));
+const F = d.frames.filter(f => f[3] > 0);
+const iv = [], img = [], big = [];
+let lastImgT = null, lastImg = null;
+for (let i = 1; i < F.length; i++) { const dt = F[i][0] - F[i-1][0]; iv.push(dt); if (dt > 20) big.push([+(F[i][3]/1000).toFixed(2), Math.round(dt)]);
+  if (F[i][1] !== lastImg) { if (lastImgT != null) img.push([F[i][0] - lastImgT, F[i][3]]); lastImgT = F[i][0]; lastImg = F[i][1]; } }
+const q = (a, p) => { const s = [...a].sort((x, y) => x - y); return Math.round(s[Math.floor(s.length * p)] * 10) / 10; };
+const imgI = img.map(x => x[0]);
+console.log('rAF frames', F.length, 'p50', q(iv, .5), 'p95', q(iv, .95), 'max', q(iv, .9999), '>20ms', big.length);
+console.log('imagen juego intervalos p50', q(imgI, .5), 'p95', q(imgI, .95), '>20', imgI.filter(x => x > 20).length, '>34', imgI.filter(x => x > 34).length, 'de', imgI.length);
+const bigImg = img.filter(x => x[0] > 34).map(x => [+(x[1]/1000).toFixed(1), Math.round(x[0])]);
+console.log('img>34 (s canción, ms):', JSON.stringify(bigImg.slice(0, 80)));
+console.log('rAF>20:', JSON.stringify(big.slice(0, 60)));
+const sw = F.filter(f => f[2] != null); const dur = (F.at(-1)[0] - F[0][0]) / 1000;
+console.log('img/s', ((F.at(-1)[1] - F[0][1]) / ((F.at(-1)[0]-F[0][0])/1000)).toFixed(1));
+console.log('canvases', JSON.stringify(d.canvases), 'dpr', d.dpr, 'quality', JSON.stringify(d.quality));
+const m = r.muestras.filter(x => x.etiqueta === 'cancion'); const last = m.at(-1);
+console.log('rend.t', JSON.stringify(last?.rend?.t), 'omit', JSON.stringify(last?.rend?.omitidos)?.slice(0, 300), 'ocupado', last?.rend?.ocupado, 'gob', last?.rend?.gob);
+console.log('juegoPct', m.map(x => x.juegoPct).join(','), 'reloj', m.map(x => x.relojPct).join(','));
+console.log('renderer keys', JSON.stringify(d.renderer).slice(0, 2500));

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GH3 original · imagen parcial en vivo</title>
+<style>
+ :root{color-scheme:dark;font:16px/1.5 system-ui;background:#161615;color:#ececea}body{margin:24px}main{max-width:1100px;margin:auto}h1{font-size:24px}p{color:#bcbcb7}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:16px 0}button,input{font:inherit}button{padding:8px 16px}canvas{display:block;width:100%;height:auto;background:#000;border:1px solid #41413c}pre{max-height:180px;overflow:auto;font-size:12px;white-space:pre-wrap}#error{color:#ff8a80}#stats{font-size:14px}
+</style>
+<main>
+ <h1>Guitar Hero III original · imagen parcial en vivo</h1>
+ <p>Esta prueba muestra parte del menú original. Algunas capas y efectos quedan pendientes; las canciones todavía no se muestran. Los archivos se leen en tu PC.</p>
+ <div class="row"><label>Carpeta con default.xex: <input id="dir" type="file" webkitdirectory multiple></label></div>
+ <div class="row"><label>Duración: <input id="secs" type="number" value="600" min="2" max="3600" style="width:6em"> segundos</label><button id="go" disabled>Iniciar</button><button id="pressStart" disabled>START</button><button id="pressA" disabled>A</button><button id="stop" disabled>Detener</button></div>
+ <p id="status">Elegí la carpeta del juego.</p><p id="error" role="alert"></p>
+ <canvas id="menuCanvas" width="1280" height="720"></canvas>
+ <p id="stats" aria-live="polite">Esperando imagen… Pulsá START para pasar las pantallas de inicio.</p>
+ <details><summary>Detalle de la prueba</summary><pre id="log"></pre></details>
+</main>
+<script>
+const $=id=>document.getElementById(id),q=new URLSearchParams(location.search);
+let files=[],worker,frame=null,raf=0;
+const result=window.r5Menu={isolated:crossOriginIsolated,exit:null,frames:0,reports:0,log:[],errors:[],last:null};
+const canvas=$('menuCanvas'),context=canvas.getContext('bitmaprenderer');
+function error(message){result.errors.push(message);$('error').textContent=message;}
+function release(m){Atomics.store(new Int32Array(m.latch),0,0);}
+function stop(){worker?.terminate();worker=null;if(raf)cancelAnimationFrame(raf);raf=0;if(frame){frame.bitmap.close();release(frame);frame=null;}for(const id of ['pressStart','pressA','stop'])$(id).disabled=true;}
+$('dir').onchange=()=>{files=[...$('dir').files].map(f=>({name:f.webkitRelativePath.split('/').slice(1).join('/'),data:f}));const ok=files.some(f=>f.name==='default.xex');$('go').disabled=!ok;$('status').textContent=ok?files.length+' archivos listos.':'Falta default.xex en la raíz de la carpeta.';};
+window.d4press=(buttons,ms=300)=>worker?.postMessage({type:'press',buttons,ms});
+$('pressStart').onclick=()=>window.d4press(0x10);$('pressA').onclick=()=>window.d4press(0x1000);
+$('stop').onclick=()=>{stop();result.exit='stopped';$('status').textContent='Prueba detenida.';$('go').disabled=false;};
+$('go').onclick=()=>{
+ if(!crossOriginIsolated||!navigator.gpu){error('Esta prueba necesita WebGPU y memoria compartida en Edge o Chrome de PC.');return;}
+ stop();Object.assign(result,{exit:null,frames:0,reports:0,log:[],errors:[],last:null,report:null});context.transferFromImageBitmap(null);$('error').textContent='';$('log').textContent='';$('go').disabled=true;
+ const args=new URLSearchParams({seconds:String(Math.min(3600,Math.max(2,Number($('secs').value)||600))),log:'info',gpu:'null',audio:'silent',xma:'decode',cpwait:'event',cpasync:'1',r5live:'1',r5liveconsumer:'r5snap-r5l-codex.js'});
+ // START schedules are diagnostic only; manual buttons are the default.
+ for(const k of ['press','r3acheck'])if(q.has(k))args.set(k,q.get(k));
+ worker=new Worker('gh3-web.js?'+args,{name:'gh3-main'});result.started=performance.now();
+ for(const id of ['pressStart','pressA','stop'])$(id).disabled=false;
+ worker.onerror=e=>{error(e.message);if(result.exit===null)result.exit='worker-error';stop();$('go').disabled=false;};
+ worker.onmessage=({data:m})=>{
+  if(m.type==='r5MenuReport'){result.reports++;result.report=m.data;if(m.data.fatal)error(m.data.fatal);}
+  else if(m.type==='r5MenuFrame'){
+   if(frame){frame.bitmap.close();release(frame);}frame=m;
+   if(!raf)raf=requestAnimationFrame(()=>{
+    raf=0;const f=frame;frame=null;if(!f)return;
+    try{context.transferFromImageBitmap(f.bitmap);result.frames++;result.last=f.info;result.lastFrameMs=performance.now()-result.started;
+     $('stats').textContent=f.info.accepted+' dibujos mostrados en este cuadro · '+result.frames+' cuadros recibidos · '+f.info.unsupportedDraws+' dibujos y '+f.info.unsupportedCopies+' copias salteados en total.';
+    }catch(e){f.bitmap.close();error(e.message);}finally{release(f);}
+   });
+  }else if(m.type==='log'){result.log.push(m.text);if(result.log.length>12000)result.log.shift();$('log').textContent=result.log.slice(-100).join('\n');}
+  else if(m.type==='mark')$('status').textContent=m.what;
+  else if(m.type==='exit'){result.exit=m.code;result.wallSeconds=(performance.now()-result.started)/1000;$('status').textContent='Prueba finalizada: '+m.code;if(m.code!==0)error(m.what||String(m.code));stop();$('go').disabled=false;}
+ };
+ worker.postMessage({type:'files',files});$('status').textContent='Preparando el juego…';
+};
+</script>
+</html>

@@ -1,0 +1,28 @@
+node_modules/
+dist/
+.vercel/
+artifacts/
+AGENTS.md
+.vercel
+original-data/
+CLAUDE.md
+toolchain/
+# carpetas creadas por error (perfil de Edge de prueba, rutas mal armadas)
+guitar herooriginal-dataedge-profile/
+hero/
+.claude/
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+tools/d1-wasm/tmp/
+HISTORIAL.md
+
+.vercel
+.env*
+deploy-supabase/
+graphify-out/
+.wrangler/
+supabase/.temp/
+scratch-pages.log

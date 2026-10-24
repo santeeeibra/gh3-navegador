@@ -1,0 +1,356 @@
+{
+ "_info": "Base de conocimiento de GH3 X360 (default.xex dd2ca1ab). Solo notas propias: direcciones, nombres y significados; sin código ni datos del juego. estado: COMPROBADO | hipotesis. Las funciones de scripts (1137) se cargan aparte desde cfuncs.tsv (extract-cfuncs.py).",
+ "entries": [
+  {
+   "kind": "global",
+   "addr": "829B57B0",
+   "name": "g_song_clock_ms",
+   "type": "float BE",
+   "desc": "Reloj de la canción en ms: 0 en menús, negativo en la cuenta regresiva, se congela al perder.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-CANCION-HIBRIDA.md"
+  },
+  {
+   "kind": "global",
+   "addr": "82CBD00C",
+   "name": "g_clock_menu",
+   "desc": "Reloj que corre también en menús (no sirve como reloj de canción).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-CANCION-HIBRIDA.md"
+  },
+  {
+   "kind": "global",
+   "addr": "82E1FC10",
+   "name": "g_bink_lock_ptr",
+   "desc": "Puntero al candado global de Bink (bink+828).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "global",
+   "addr": "82989F64",
+   "name": "g_xaudio_render_lock",
+   "desc": "Candado del render XAudio.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "global",
+   "addr": "82989F84",
+   "name": "g_xaudio_getpos_lock",
+   "desc": "Candado de GetPosition (distinto del de render).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "global",
+   "addr": "82E1F644",
+   "name": "g_xaudio_obj",
+   "desc": "Global que sub_827A0ED8 llena con el objeto de audio; la limpieza lo pone en 0.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-G1B.md"
+  },
+  {
+   "kind": "global",
+   "addr": "822E2528",
+   "name": "g_spin_counter_a",
+   "desc": "Contador de la espera activa de sub_822CA268.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/CHECKPOINT-CLAUDE-2026-10-12-OPTIM.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828BC328",
+   "name": "BinkOpen",
+   "desc": "Única llamada desde el juego en 0x82365380.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828BBF78",
+   "name": "Bink_SelectTracks",
+   "desc": "Elige las 6 pistas de audio del video.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828C0BA8",
+   "name": "BinkOpenXAudio",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828C08E8",
+   "name": "BinkXAudio_OpenTrack",
+   "desc": "Crea la voz XAudio; búfer 600 ms, bloque 50 ms.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828C0140",
+   "name": "BinkXAudio_Ready",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828C0310",
+   "name": "BinkXAudio_Lock",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828C0478",
+   "name": "BinkXAudio_Unlock",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828BBA48",
+   "name": "Bink_SoundService",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828BF238",
+   "name": "BinkDoFrame",
+   "desc": "Recorta lo decodificado al espacio libre del búfer interno.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828BC1B0",
+   "name": "Bink_IoNotify",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "828C2848",
+   "name": "Bink_DecodePacket",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "827C46C8",
+   "name": "XAudio_DriverCallback",
+   "desc": "Callback del driver de audio; delega en 827A0D80.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "827A0D80",
+   "name": "XAudio_Render",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "82797B58",
+   "name": "XAudio_CreateVoice",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "82796FA0",
+   "name": "XAudio_GetPosition",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R6-BINK-GHIDRA.md"
+  },
+  {
+   "kind": "func",
+   "addr": "824AC738",
+   "name": "XamInputGetState_thunk",
+   "desc": "Adapta argumentos y salta a XamInputGetState (6 llamadas en 5 funciones).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/rea-gh3/CHECKPOINT.md"
+  },
+  {
+   "kind": "func",
+   "addr": "824B2330",
+   "name": "Gpu_VBlankInterrupt",
+   "desc": "Origen 0 = VBlank.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R2B.md"
+  },
+  {
+   "kind": "func",
+   "addr": "824B2430",
+   "name": "Gpu_CpInterrupt",
+   "desc": "Origen 1 = interrupción del CP.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-R2B.md"
+  },
+  {
+   "kind": "func",
+   "addr": "822CA268",
+   "name": "Spin_WaitA",
+   "desc": "Espera activa (loc_822CA360/488).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/CHECKPOINT-CLAUDE-2026-10-12-OPTIM.md"
+  },
+  {
+   "kind": "func",
+   "addr": "822BF0F8",
+   "name": "Spin_WaitB",
+   "desc": "Espera activa (loc_822BF184 contador, loc_822BF1A8 cola).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/CHECKPOINT-CLAUDE-2026-10-12-OPTIM.md"
+  },
+  {
+   "kind": "func",
+   "addr": "82231820",
+   "name": "Main_WaitPrepare",
+   "desc": "Hilo principal consultando si terminó la preparación.",
+   "estado": "hipotesis",
+   "fuente": "artifacts/d1-wasm/RESULTADO-G1B.md"
+  },
+  {
+   "kind": "shader",
+   "hash": "19815E13AC0DCC92",
+   "name": "vs_star_gems",
+   "desc": "Gemas de poder estelar (PS 89FD5F25CB8034BB).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/notesfix/RESULTADO-NOTAS-ESTRELLA.md"
+  },
+  {
+   "kind": "shader",
+   "hash": "27643FEB20B8CBBD",
+   "name": "vs_sustain_tails_a",
+   "desc": "Colas de notas largas + llamaradas (junto a 10CA3B73).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/colas/RESULTADO-COLAS.md"
+  },
+  {
+   "kind": "shader",
+   "hash": "10CA3B730086027C",
+   "name": "vs_sustain_tails_b",
+   "desc": "Colas de notas largas + llamaradas (junto a 27643FEB).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/colas/RESULTADO-COLAS.md"
+  },
+  {
+   "kind": "shader",
+   "hash": "BB4772DE649F6C89",
+   "name": "vs_bb4772de",
+   "desc": "NO son las colas (sin él igual se ven). Significado pendiente.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/colas/RESULTADO-COLAS.md"
+  },
+  {
+   "kind": "shader",
+   "hash": "29B6E72E",
+   "name": "vs_stage_background",
+   "desc": "Fondo del escenario.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/notesfix/RESULTADO-NOTAS-ESTRELLA.md"
+  },
+  {
+   "kind": "shader",
+   "hash": "8E54B9A1",
+   "name": "vs_not_notes_8e54",
+   "desc": "No son notas (bisección).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/notesfix/RESULTADO-NOTAS-ESTRELLA.md"
+  },
+  {
+   "kind": "shader",
+   "hash": "A779",
+   "name": "ps_a779_body_shadows",
+   "desc": "PS del torso con mapas PCF14/15 (sombras).",
+   "estado": "hipotesis",
+   "fuente": "artifacts/COORDINACION.md (Codex)"
+  },
+  {
+   "kind": "shader_set",
+   "name": "roadVS",
+   "hashes": [
+    "CAC1FD2246E486B4",
+    "57F6448DAC5BEB74",
+    "B43CF443883B8351",
+    "87D4CAE67E72C501",
+    "582ABCF5FF619A55",
+    "80708BD1B82638B0",
+    "94B97981B512BDA2",
+    "19815E13AC0DCC92",
+    "27643FEB20B8CBBD",
+    "10CA3B730086027C"
+   ],
+   "desc": "VS de la autopista que dibuja el modo liviano.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/memlazy/demo/r5snap-song-colas.js"
+  },
+  {
+   "kind": "file",
+   "name": "songs/<tema>_song.pak.xen",
+   "desc": "deflate crudo → PAK → QB big-endian; tabla <tema>_song_<dificultad> = [ms, largo, máscara].",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-CANCION-HIBRIDA.md"
+  },
+  {
+   "kind": "input",
+   "name": "frets_gamepad",
+   "desc": "Mando común en canción: verde LT, rojo LB, amarillo RB, azul RT, naranja A, rasgueo cruceta abajo. Desfase de juicio ~-450 ms respecto del reloj.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/d1-wasm/RESULTADO-CANCION-HIBRIDA.md"
+  },
+  {
+   "kind": "table",
+   "addr": "828E8A98",
+   "name": "g_script_cfunc_table",
+   "desc": "Tabla {nombre, función} de 1137 funciones C que llaman los scripts QB.",
+   "estado": "COMPROBADO",
+   "fuente": "tools/re/extract-cfuncs.py"
+  },
+  {
+   "kind": "func",
+   "addr": "82110430",
+   "name": "CrowdDecrease",
+   "desc": "Función de scripts que baja el medidor de rock: 1 llamada por nota fallada o rasgueo de más (Talk Dirty: 45 de 70 rasgueos). Pasa el trabajo a 8210FBE0.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/re/RESULTADO-RE-PASOS-1-2.md"
+  },
+  {
+   "kind": "func",
+   "addr": "8210FBE0",
+   "name": "Crowd_Change",
+   "desc": "Interna de CrowdIncrease/CrowdDecrease: lee valores de estructuras de script (checksums) y cambia el medidor.",
+   "estado": "hipotesis",
+   "fuente": "artifacts/re/RESULTADO-RE-PASOS-1-2.md"
+  },
+  {
+   "kind": "func",
+   "addr": "82110C58",
+   "name": "GuitarEvent_HitNotes_CFunc",
+   "desc": "1 llamada por nota acertada (aciertos + fallos = rasgueos del robot). Sirve de contador de aciertos con el espía de llamadas.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/re/RESULTADO-RE-PASOS-1-2.md"
+  },
+  {
+   "kind": "func",
+   "addr": "821061A0",
+   "name": "CrowdReset",
+   "desc": "Se llama al empezar la canción y al perder (Song Failed).",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/re/RESULTADO-RE-PASOS-1-2.md"
+  },
+  {
+   "kind": "hallazgo",
+   "name": "notas_repetidas_con_traste_mantenido",
+   "desc": "Con mando común (C1), una nota del mismo color que la anterior se cuenta como FALLO si el traste sigue apretado desde la nota anterior; soltar y volver a apretar el traste la convierte en acierto. Rasguear sigue siendo necesario. Explica Song Failed de Talk Dirty a 36,4 s (37 % de notas repetidas). Causa (regla del juego en modo mando vs capa de entrada) pendiente.",
+   "estado": "COMPROBADO",
+   "fuente": "artifacts/re/RESULTADO-RE-PASOS-1-2.md"
+  }
+ ]
+}

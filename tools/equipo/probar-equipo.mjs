@@ -1,0 +1,11 @@
+import {chromium} from 'playwright';
+import http from 'http';import fs from 'fs';import path from 'path';
+const dir=process.argv[2];
+const srv=http.createServer((q,r)=>{const f=path.join(dir,q.url.split('?')[0]);try{r.setHeader('content-type',f.endsWith('.js')?'text/javascript':'text/html');r.end(fs.readFileSync(f));}catch{r.statusCode=404;r.end();}}).listen(0);
+await new Promise(r=>srv.on('listening',r));
+const mode=process.argv[3]||'headless';
+const b=await chromium.launch({channel:'msedge',headless:mode==='headless',args:['--enable-unsafe-webgpu']});
+const p=await b.newPage({viewport:{width:1280,height:720}});
+await p.goto(`http://localhost:${srv.address().port}/t.html?equipo=0`);
+for(let i=0;i<2;i++)console.log(JSON.stringify(await p.evaluate(()=>window.gh3Equipo.medir())));
+await b.close();srv.close();

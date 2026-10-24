@@ -1,0 +1,22 @@
+# Carpetas de pruebas, respaldos y binarios: no aportan al mapa del código
+pruebas/
+c/
+artifacts/
+original-data/
+toolchain/
+dist/
+node_modules/
+graphify-out/
+.wrangler/
+.vercel/
+.claude/
+assets/
+bridge/
+hero/
+# Historiales largos (se leen con grep cuando hace falta)
+HISTORIAL.md
+docs/nube/
+COORDINACION.md
+*.log
+*.cmd
+*.ps1

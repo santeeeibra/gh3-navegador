@@ -1,0 +1,8 @@
+// autopista60 (Claude 2026-10-14): carga la copia publicable con la capa SIN arrancar el juego (puerto 5466): capa presente, pantalla nueva aplicada, 0 errores.
+import {chromium} from 'playwright';import {spawn} from 'node:child_process';
+const srv=spawn(process.execPath,['tools/ui3/serve.mjs','artifacts/d1-wasm/autopista60-pub/demo','5466'],{stdio:'ignore'});
+await new Promise(r=>setTimeout(r,1500));const b=await chromium.launch({channel:'msedge',headless:true});const errs=[];
+try{const p=await b.newPage({viewport:{width:Number(process.env.VW||1440),height:Number(process.env.VH||800)}});p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://127.0.0.1:5466/gh3/');await p.waitForTimeout(3000);
+console.log(JSON.stringify(await p.evaluate(()=>({a60:!!window.hw60?.a60,enabled:window.hw60?.enabled,workspace:document.body.classList.contains('gh3Workspace'),full:!!document.getElementById('gh3Full'),cssA60:[...document.styleSheets].some(s=>{try{return [...s.cssRules].some(r=>r.selectorText==='html.hw60Full body #r5Canvas')}catch{return false}}),play:!!document.getElementById('loaderPlay'),btns:['gh3Full','gh3Full2'].map(id=>{const e=document.getElementById(id);if(!e)return id+':no';const r=e.getBoundingClientRect();return id+':'+Math.round(r.x)+','+Math.round(r.y)+','+Math.round(r.width)+'x'+Math.round(r.height)+' vis='+(e.offsetParent!==null)+' dis='+e.disabled+' parent='+(e.closest('[hidden],details:not([open]),section')?.id||e.closest('section')?.dataset?.tab||'')}),query:location.search.slice(0,200)}))),'pageErrors',errs.length,errs.slice(0,3));
+await p.screenshot({path:'artifacts/d1-wasm/autopista60-pub/portada.png'});}finally{await b.close();srv.kill();}

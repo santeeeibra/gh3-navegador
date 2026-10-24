@@ -1,0 +1,18 @@
+import {webkit, devices} from 'playwright';
+import fs from 'node:fs';
+const demo = 'artifacts/d1-wasm/movil-ctl/demo', errs = [];
+const b = await webkit.launch(); const ctx = await b.newContext({...devices['iPhone 13 landscape']});
+const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
+await p.setContent(`<!doctype html><body style="margin:0;background:#000"><div id="gh3Panel" style="display:block"></div><div id="r5Box" style="position:fixed;inset:0;z-index:40"><canvas id="r5Canvas" width="1280" height="720" style="width:100%;height:100%"></canvas></div></body>`);
+await p.evaluate(() => { window.gh3Input = {setTouch() {}}; });
+for (const n of ['gh3-touch.js', 'gh3-movil-ctl.js']) await p.addScriptTag({content: fs.readFileSync(`${demo}/${n}`, 'utf8')});
+await p.evaluate(() => { window.gh3Touch?.enable?.(); dispatchEvent(new CustomEvent('gh3stage', {detail: {stage: 'songPlaying'}})); });
+await p.waitForTimeout(500);
+await p.evaluate(() => { const t = performance.now(); while (performance.now() - t < 300); });
+await p.waitForTimeout(300);
+await p.evaluate(() => { document.getElementById('r5Canvas').width = 960; });
+await p.waitForTimeout(300);
+await p.evaluate(() => { const d = document.createElement('div'); d.id = 'tapa'; d.style.cssText = 'position:fixed;inset:0;z-index:99;background:#000;pointer-events:none'; document.body.append(d); });
+await p.waitForTimeout(1500);
+console.log(JSON.stringify({errs, panel: await p.evaluate(() => document.getElementById('gh3MovilDiag')?.innerText)}, null, 1));
+await b.close();

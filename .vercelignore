@@ -1,0 +1,11 @@
+AGENTS.md
+node_modules
+artifacts
+.git
+original-data
+CLAUDE.md
+toolchain
+docs/
+web/
+HISTORIAL.md
+graphify-out/
