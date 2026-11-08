@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><script src="/gh3/foco-mando.js?v=20261108"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slow Ride concierto 0.6 (local)</title>
+<style>
+  :root { --fondo: #101016; --texto: #e8e6ef; --tenue: #9a97a8; --aviso: #f2b33d; --bien: #5fd38a; --mal: #ff6b6b; --panel: rgba(16,16,24,.88); }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: #000; color: var(--texto);
+    font: 15px/1.4 system-ui, "Segoe UI", sans-serif; overflow: hidden; }
+  #fondo { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
+  #pista { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: transparent; }
+  .prov { position: fixed; top: 0; left: 0; right: 0; padding: 6px 16px; text-align: center; background: rgba(242,179,61,.16);
+    border-bottom: 1px solid rgba(242,179,61,.5); color: var(--aviso); font-weight: 600; letter-spacing: .02em; }
+  .hud { position: fixed; top: 44px; left: 16px; display: grid; grid-template-columns: auto auto; gap: 2px 14px; font-variant-numeric: tabular-nums; }
+  .hud b { font-size: 22px; } .hud span { color: var(--tenue); align-self: center; }
+  .controles { position: fixed; top: 44px; right: 16px; max-width: 290px; color: var(--tenue); font-size: 13px; text-align: right; }
+  kbd { background: #2a2836; border: 1px solid #45425a; border-radius: 4px; padding: 0 5px; color: var(--texto); font: 12px ui-monospace, monospace; }
+  .pie { position: fixed; bottom: 8px; left: 16px; right: 16px; color: var(--tenue); font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  #resultado { position: fixed; left: 0; right: 0; bottom: 34px; text-align: center; font-weight: 700; font-size: 18px; min-height: 1.4em; text-shadow: 0 1px 3px #000; }
+  .bien { color: var(--bien); } .mal { color: var(--mal); }
+  .capa { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(8,8,12,.55); padding: 16px; }
+  .caja { background: var(--panel); border: 1px solid #3a3750; border-radius: 10px; padding: 22px 26px; max-width: 560px; width: 100%; }
+  .caja h1 { margin: 0 0 6px; font-size: 22px; } .caja p { margin: 8px 0; color: var(--tenue); }
+  button { font: inherit; font-weight: 600; background: var(--aviso); color: #1a1408; border: 0; border-radius: 6px; padding: 10px 22px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: wait; }
+  button.chico { padding: 4px 10px; font-size: 13px; background: #2a2836; color: var(--texto); border: 1px solid #45425a; }
+  select { font: inherit; font-size: 13px; background: #2a2836; color: var(--texto); border: 1px solid #45425a; border-radius: 4px; padding: 3px 6px; }
+  .mando { border-top: 1px solid #3a3750; margin-top: 12px; padding-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .mando p { flex-basis: 100%; margin: 2px 0; }
+  .elegir { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0; color: var(--tenue); font-size: 13px; }
+  .elegir label { display: flex; gap: 6px; align-items: center; }
+  .elegir select { max-width: 220px; }
+  .caja .licencia { font-size: 12px; }
+  @media (max-width: 760px) { .controles { display: none; } }
+body{background:radial-gradient(ellipse at 50% 20%,#29252e,#09090c 70%)}#fondo{display:none}#inicio{background:#180400 url('/gh3/juego/original/0507_CBBCC379_CBBCC379.img.xen.png') center/contain no-repeat;z-index:25}#inicio .caja{position:absolute;bottom:3vh;max-width:85vw;width:auto;text-align:center;background:transparent;border:0;box-shadow:none;padding:8px}#inicio .caja>*{display:none}#inicio #cargaEstado{display:block;color:#fff;text-shadow:0 1px 3px #000;font-size:15px}#inicio #empezar:not([hidden]){display:inline-block}#inicio #empezar[hidden]{display:none}</style>
+</head>
+<body>
+<!-- Claude 2026-11-02 (concierto): concierto original grabado de GH3 (solo local) detrás de la autopista de Motor. 0.6: video nuevo, sin rectángulo negro, whammy con cola ondulada. -->
+<video id="fondo" muted playsinline preload="auto" disablepictureinpicture></video>
+<canvas id="pista"></canvas>
+<div class="prov"><b id="modo"></b> — Concierto 0.6 (Motor 0.5): juicio y puntaje de GH3 Xbox 360, mando y vibrato (sonido aproximado, cola ondulada como GH3) — sin Star Power — concierto original grabado de fondo</div>
+<div class="hud">
+  <b id="puntos">0</b><span>puntos</span>
+  <b id="racha">0</b><span>racha</span>
+  <b id="mult">x1</b><span>multiplicador</span>
+  <b id="prec">100.0 %</b><span>precisión</span>
+  <b id="desvio">0 ms</b><span>desvío medio (+ = tarde)</span>
+</div>
+<div class="controles">
+  Trastes <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd><kbd>G</kbd><br>
+  Cambiar modo <kbd>T</kbd> · Rasgueo (solo modo GH3) <kbd>Enter</kbd> o <kbd>↑</kbd> <kbd>↓</kbd><br>
+  Vibrato: analógico derecho del mando o palanca de la guitarra, en notas largas<br>
+  Pausa <kbd>P</kbd>/<kbd>Esc</kbd> · Reiniciar <kbd>R</kbd><br>
+  Calibración <kbd>,</kbd> <kbd>.</kbd> (±5 ms) · Offset <kbd>[</kbd> <kbd>]</kbd> (±1 ms)<br>
+  Ajuste del concierto <kbd>-</kbd> <kbd>=</kbd> (±10 ms)
+</div>
+<div id="resultado" aria-live="polite"></div>
+<div class="pie"><span id="calib"></span><span id="verif"></span><span id="estado"></span><span id="mando"></span><span id="paquete"></span><span id="fondoInfo"></span></div>
+
+<div class="capa" id="inicio">
+  <div class="caja">
+    <h1 id="tituloCancion">LAS VEGAS HERO</h1>
+    <div class="elegir">
+      <label>Paquete <select id="selPaquete" aria-label="Paquete de canciones"></select></label>
+      <label>Canción <select id="selCancion" aria-label="Canción"></select></label>
+      <label>Dificultad <select id="selDificultad" aria-label="Dificultad"></select></label>
+    </div>
+    <p id="infoChart">Cargando chart...</p>
+    <p id="licencia" class="licencia"></p>
+    <p>Arranca en modo simplificado: apretá <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> <kbd>G</kbd> cuando la nota llega a la línea, sin <kbd>Enter</kbd>. En las notas largas, mantené el traste.</p>
+    <p>Con <kbd>T</kbd> pasás al modo GH3 auténtico: traste + rasgueo (<kbd>Enter</kbd> o las flechas), y los HOPO se tocan cambiando de traste sin rasguear.</p>
+    <p>Vibrato: después de acertar una nota larga, mientras la sostenés, mové el analógico derecho hacia los lados (o la palanca de la guitarra). Baja el tono de la guitarra hasta un semitono, como en GH3 (el sonido es una aproximación), y la cola ondula siguiendo lo que hacés con la palanca.</p>
+    <p>Si las notas te parecen corridas respecto del audio, usá <kbd>,</kbd> y <kbd>.</kbd>: el desvío medio te dice para qué lado.</p>
+    <p id="cargaEstado" role="status" aria-live="polite">Cargando canción…</p>
+    <button id="empezar" hidden>Reintentar</button>
+    <div class="mando">
+      <p id="mandoTitulo">Mando o guitarra USB (opcional)</p>
+      <select id="perfil" aria-label="Tipo de mando"><option value="joystick">Joystick</option><option value="guitarra">Guitarra USB</option></select>
+      <button class="chico" id="aprEje">Aprender eje del vibrato</button>
+      <button class="chico" id="aprBot">Aprender botones</button>
+      <button class="chico" id="restab">Restablecer</button>
+      <p id="mandoAviso"></p>
+    </div>
+  </div>
+</div>
+<div class="capa" id="pausa" hidden><div class="caja"><h1>Pausa</h1><p><kbd>P</kbd> para seguir · <kbd>R</kbd> para reiniciar</p></div></div>
+<div class="capa" id="fin" hidden><div class="caja"><h1>Fin de la canción</h1><p id="finTexto"></p><p><kbd>R</kbd> para jugar de nuevo.</p></div></div>
+
+<script type="module" src="/gh3/juego/rl/controles-motor.mjs?v=20261105"></script><script type="module" src="/gh3/juego/rl/motor-extra.mjs?v=20261104c"></script></body>
+</html>
