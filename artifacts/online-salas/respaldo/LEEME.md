@@ -4,3 +4,9 @@ Mismo protocolo que el Worker gh3-salas, salas en memoria (se pierden al reinici
 Prueba: `node test-respaldo.mjs`. Para activarlo en el sitio: subirlo a un hosting con WebSocket (Render, Fly, Deno...) y
 poner su URL https en `RESPALDO` de `gh3/juego/servidor-salas.mjs`. Probar sin subirlo: `?respaldo=http://127.0.0.1:8899`.
 El cliente mide `/api/sala/lista` del sitio (5 s); si falla, usa el respaldo 60 s. Las salas de cada servidor son independientes.
+
+## Comentarios
+POST /api/feedback (mismas reglas que Pages: 3 por red cada 10 min, request_id sin duplicados). Quedan en memoria y en un .jsonl
+(en Render gratis se borra al reiniciar). Leerlos: GET /api/feedback/pendientes con `Authorization: Bearer <CLAVE_ADMIN>`
+(variable de entorno en Render; sin ella el endpoint no existe). El cliente (gh3-feedback.js) ademas deja el comentario en su
+bandeja y lo reenvia a D1 cuando Cloudflare vuelve.

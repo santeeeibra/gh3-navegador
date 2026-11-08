@@ -1,5 +1,8 @@
 // Prueba del servidor de respaldo: node test-respaldo.mjs (usa el WebSocket cliente de Node 22+).
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+process.env.CLAVE_ADMIN = 'clave-de-prueba';
+process.env.COMENTARIOS_ARCHIVO = 'NUL';
 import {servidor} from './respaldo/servidor.mjs';
 const P = 8897, H = 'http://127.0.0.1:' + P, W = 'ws://127.0.0.1:' + P;
 await new Promise(r => servidor.listen(P, '127.0.0.1', r));
@@ -15,6 +18,16 @@ try {
   assert.equal(lista.salas.length, 20); assert.equal(lista.salas[10].modo, 'coop');
   const nueva = (await (await fetch(H + '/api/sala/nueva')).json()).codigo; assert.match(nueva, /^[A-Z]{5}$/);
   assert.equal((await fetch(H + '/api/sala/lista', {headers: {Origin: 'https://malo.example'}})).status, 403);
+  // comentarios
+  const idc = crypto.randomUUID(), ok = {rating: 4, category: 'audio', message: 'suena bien', nickname: 'ana', request_id: idc, device: 'desktop', browser: 'Brave'};
+  const pc = (b, o = 'https://lasvegasherogame.com') => fetch(H + '/api/feedback', {method: 'POST', headers: {'content-type': 'application/json', Origin: o}, body: JSON.stringify(b)});
+  assert.equal((await pc(ok)).status, 200); assert.equal((await pc(ok)).status, 200); // duplicado ok
+  assert.equal((await pc({...ok, request_id: crypto.randomUUID(), rating: 9})).status, 400);
+  assert.equal((await pc(ok, 'https://malo.example')).status, 403);
+  assert.equal((await fetch(H + '/api/feedback/pendientes')).status, 401);
+  const pend = await (await fetch(H + '/api/feedback/pendientes', {headers: {authorization: 'Bearer clave-de-prueba'}})).json(); assert.equal(pend.total, 1); assert.equal(pend.comentarios[0].request_id, idc);
+  for (let i = 0; i < 2; i++) await pc({...ok, request_id: crypto.randomUUID()});
+  assert.equal((await pc({...ok, request_id: crypto.randomUUID()})).status, 429);
   const a = await cli('/api/sala/SALAB'); const ha = await a.espera('hola'); assert.equal(ha.anfitrion, true); assert.equal(ha.modo, 'cara');
   const b = await cli('/api/sala/SALAB'); const hb = await b.espera('hola'); assert.equal(hb.anfitrion, false);
   let jn = await a.espera('jugadores'); if (jn.n === 1) jn = await a.espera('jugadores'); assert.equal(jn.n, 2);

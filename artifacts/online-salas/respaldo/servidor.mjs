@@ -3,6 +3,9 @@
 // Variables: PORT (8899), ORIGENES (regex extra de orígenes permitidos, opcional).
 import http from 'node:http';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {aceptar, rechazar} from './ws-minimo.mjs';
 
 const json = o => JSON.stringify(o);
@@ -133,12 +136,73 @@ function conectarSala(c, codigo) {
   enviar(r, {t: 'jugadores', n: vivos(r).length});
 }
 
+
+// ---- Comentarios (respaldo de /api/feedback de Pages) ----
+// Si Cloudflare/D1 falla, el cliente manda el comentario acá y además lo deja en su bandeja para reenviarlo a D1 (request_id evita duplicados).
+// Se guardan en memoria y en un .jsonl (en Render gratis se borra al reiniciar). Lectura: GET /api/feedback/pendientes con
+// "Authorization: Bearer <CLAVE_ADMIN>" (variable de entorno; sin ella el endpoint no existe).
+const CATEGORIAS = ['general', 'performance', 'audio', 'controls', 'loading', 'graphics', 'suggestion', 'other'];
+const limpio = v => typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim() : null;
+function validarComentario(b) {
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return null;
+  const message = limpio(b.message ?? ''), nickname = limpio(b.nickname ?? '');
+  if (!Number.isInteger(b.rating) || b.rating < 1 || b.rating > 5 || !CATEGORIAS.includes(b.category)) return null;
+  if (message === null || nickname === null || message.length > 2000 || nickname.length > 40) return null;
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(b.request_id || '')) return null;
+  return {request_id: b.request_id, rating: b.rating, category: b.category, message, nickname,
+    device: ['phone', 'tablet', 'desktop'].includes(b.device) ? b.device : 'unknown',
+    browser: ['Edge', 'Firefox', 'Opera', 'Brave', 'Chrome', 'Safari', 'Other'].includes(b.browser) ? b.browser : 'Other'};
+}
+const ARCHIVO = process.env.COMENTARIOS_ARCHIVO || path.join(os.tmpdir(), 'gh3-comentarios-respaldo.jsonl');
+const comentarios = [];
+try { for (const l of fs.readFileSync(ARCHIVO, 'utf8').split('\n')) if (l.trim()) comentarios.push(JSON.parse(l)); } catch {}
+const sal = crypto.randomBytes(8).toString('hex'), usos = new Map();
+const limitado = ip => {
+  const k = crypto.createHash('sha256').update(sal + ip).digest('hex'), ahora = Date.now(), l = (usos.get(k) || []).filter(x => ahora - x < 600000);
+  if (l.length >= 3) { usos.set(k, l); return true; }
+  l.push(ahora); usos.set(k, l); return false;
+};
+setInterval(() => { const ahora = Date.now(); for (const [k, l] of usos) if (!l.some(x => ahora - x < 600000)) usos.delete(k); }, 600000).unref();
+function leerCuerpo(req, max = 12000) {
+  return new Promise((res, rej) => {
+    const partes = []; let n = 0;
+    req.on('data', d => { n += d.length; if (n > max) { rej(Object.assign(Error('size'), {codigo: 413})); req.destroy(); } else partes.push(d); });
+    req.on('end', () => res(Buffer.concat(partes).toString('utf8')));
+    req.on('error', rej);
+  });
+}
+async function rutaComentarios(req, res, u, dar) {
+  if (u.pathname === '/api/feedback/pendientes') {
+    const clave = process.env.CLAVE_ADMIN;
+    if (!clave || req.method !== 'GET') return dar(404, 'no', 'text/plain');
+    const dado = String(req.headers.authorization || '').replace(/^Bearer /, '');
+    const a = crypto.createHash('sha256').update(dado).digest(), b = crypto.createHash('sha256').update(clave).digest();
+    if (!crypto.timingSafeEqual(a, b)) return dar(401, 'no', 'text/plain');
+    return dar(200, {total: comentarios.length, comentarios});
+  }
+  if (req.method === 'OPTIONS') { res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'content-type, apikey, authorization'); return dar(204, ''); }
+  if (req.method !== 'POST') return dar(405, {error: 'method'});
+  if (!req.headers.origin) return dar(403, {error: 'origin'});
+  let body;
+  try { body = JSON.parse(await leerCuerpo(req)); } catch (e) { return dar(e.codigo || 400, {error: e.codigo === 413 ? 'size' : 'json'}); }
+  if (typeof body?.website === 'string' && body.website.trim()) return dar(200, {ok: true});
+  const d = validarComentario(body); if (!d) return dar(400, {error: 'invalid'});
+  if (comentarios.some(c => c.request_id === d.request_id)) return dar(200, {ok: true});
+  const ip = String(req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  if (limitado(ip)) return dar(429, {error: 'rate_limit'});
+  const fila = {...d, recibido: new Date().toISOString(), origen: 'respaldo'};
+  comentarios.push(fila); if (comentarios.length > 500) comentarios.shift();
+  try { fs.appendFileSync(ARCHIVO, JSON.stringify(fila) + '\n'); } catch {}
+  return dar(200, {ok: true});
+}
+
 const cors = (req, res) => { const o = req.headers.origin; if (o && origenOk(o)) { res.setHeader('Access-Control-Allow-Origin', o); res.setHeader('Vary', 'Origin'); } };
-const servidor = http.createServer((req, res) => {
+const servidor = http.createServer(async (req, res) => {
   cors(req, res);
   const u = new URL(req.url, 'http://x');
   const dar = (st, cuerpo, tipo = 'application/json') => { res.writeHead(st, {'Content-Type': tipo, 'Cache-Control': 'no-store'}); res.end(typeof cuerpo === 'string' ? cuerpo : json(cuerpo)); };
   if (!origenOk(req.headers.origin)) return dar(403, 'origen', 'text/plain');
+  if (u.pathname.startsWith('/api/feedback')) return rutaComentarios(req, res, u, dar);
   if (req.method === 'OPTIONS') { res.setHeader('Access-Control-Allow-Methods', 'GET'); return dar(204, ''); }
   if (req.method !== 'GET') return dar(405, 'método', 'text/plain');
   if (u.pathname === '/api/sala/salud' || u.pathname === '/') return dar(200, {ok: true, respaldo: true});
