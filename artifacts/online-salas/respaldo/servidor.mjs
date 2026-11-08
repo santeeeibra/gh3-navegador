@@ -196,6 +196,61 @@ async function rutaComentarios(req, res, u, dar) {
   return dar(200, {ok: true});
 }
 
+// ---- Visitas y panel (respaldo de /api/analytics y /api/dashboard) ----
+// Solo cuenta visitas (una por sesión) y deja leer visitas + comentarios. El resto de las estadísticas no pasa por acá: cada
+// navegador las guarda en su cola y las manda a D1 cuando Cloudflare vuelve. Lectura: GET /api/dashboard-respaldo con
+// "Authorization: Bearer <clave>" donde clave = CLAVE_ADMIN, o la contraseña del panel si está cargado ADMIN_TOKEN_SHA256 (sha256 en hex).
+const VISITAS_ARCHIVO = process.env.VISITAS_ARCHIVO || path.join(os.tmpdir(), 'gh3-visitas-respaldo.jsonl');
+const visitas = new Map(); // session_id -> {day, at, source, device}
+try { for (const l of fs.readFileSync(VISITAS_ARCHIVO, 'utf8').split('\n')) if (l.trim()) { const v = JSON.parse(l); visitas.set(v.session_id, v); } } catch {}
+const diaAR = ms => new Date(ms - 3 * 3600000).toISOString().slice(0, 10);
+const FUENTES = ['direct', 'x', 'google', 'facebook', 'instagram', 'whatsapp', 'tiktok', 'youtube', 'email', 'other'];
+const usosVisita = new Map();
+const limiteVisita = ip => {
+  const k = crypto.createHash('sha256').update(sal + ip).digest('hex'), ahora = Date.now(), l = (usosVisita.get(k) || []).filter(x => ahora - x < 600000);
+  if (l.length >= 60) { usosVisita.set(k, l); return true; }
+  l.push(ahora); usosVisita.set(k, l); return false;
+};
+setInterval(() => { const ahora = Date.now(); for (const [k, l] of usosVisita) if (!l.some(x => ahora - x < 600000)) usosVisita.delete(k); }, 600000).unref();
+const hashDe = v => crypto.createHash('sha256').update(v).digest();
+function autorizado(req) {
+  const dado = String(req.headers.authorization || '').replace(/^Bearer /, '');
+  if (dado.length < 16 || dado.length > 256) return false;
+  const clave = process.env.CLAVE_ADMIN, sha = String(process.env.ADMIN_TOKEN_SHA256 || '').toLowerCase();
+  if (clave && crypto.timingSafeEqual(hashDe(dado), hashDe(clave))) return true;
+  return /^[a-f0-9]{64}$/.test(sha) && crypto.timingSafeEqual(hashDe(dado), Buffer.from(sha, 'hex'));
+}
+async function rutaVisitas(req, res, u, dar) {
+  if (u.pathname === '/api/dashboard-respaldo') {
+    if (!process.env.CLAVE_ADMIN && !process.env.ADMIN_TOKEN_SHA256) return dar(404, 'no', 'text/plain');
+    if (req.method === 'OPTIONS') { res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'authorization'); return dar(204, ''); }
+    if (req.method !== 'GET') return dar(405, 'no', 'text/plain');
+    if (!autorizado(req)) return dar(401, 'no', 'text/plain');
+    const porDia = {}, fuentes = {}, dispositivos = {}; let primera = null;
+    for (const v of visitas.values()) { porDia[v.day] = (porDia[v.day] || 0) + 1; fuentes[v.source] = (fuentes[v.source] || 0) + 1; dispositivos[v.device] = (dispositivos[v.device] || 0) + 1; if (!primera || v.at < primera) primera = v.at; }
+    const notas = comentarios.map(c => c.rating), prom = notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null;
+    return dar(200, {respaldo: true, ahora: new Date().toISOString(),
+      aviso: 'Cloudflare no respondió: solo hay visitas y comentarios. El resto de las estadísticas está en la cola de cada navegador y llega a D1 cuando Cloudflare vuelva.',
+      visitas: {total: visitas.size, hoy: porDia[diaAR(Date.now())] || 0, desde: primera, por_dia: Object.entries(porDia).sort().map(([day, n]) => ({day, visits: n})), por_fuente: fuentes, por_dispositivo: dispositivos},
+      comentarios: {total: comentarios.length, promedio: prom, recientes: comentarios.slice(-100).reverse()}});
+  }
+  if (req.method === 'OPTIONS') { res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'content-type'); return dar(204, ''); }
+  if (req.method !== 'POST') return dar(405, {error: 'method'});
+  if (!req.headers.origin) return dar(403, {error: 'origin'});
+  let b; try { b = JSON.parse(await leerCuerpo(req, 2000)); } catch (e) { return dar(e.codigo || 400, {error: 'json'}); }
+  const id = String(b?.session_id || '').toLowerCase();
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(id)) return dar(400, {error: 'invalid'});
+  if (visitas.has(id)) return dar(200, {ok: true});
+  const ip = String(req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  if (limiteVisita(ip)) return dar(429, {error: 'rate_limit'});
+  const ahora = Date.now(), fila = {session_id: id, day: diaAR(ahora), at: new Date(ahora).toISOString(),
+    source: FUENTES.includes(b.source) ? b.source : 'other', device: ['phone', 'tablet', 'desktop'].includes(b.device) ? b.device : 'unknown'};
+  if (visitas.size >= 100000) return dar(200, {ok: true});
+  visitas.set(id, fila);
+  try { fs.appendFileSync(VISITAS_ARCHIVO, JSON.stringify(fila) + '\n'); } catch {}
+  return dar(200, {ok: true});
+}
+
 const cors = (req, res) => { const o = req.headers.origin; if (o && origenOk(o)) { res.setHeader('Access-Control-Allow-Origin', o); res.setHeader('Vary', 'Origin'); } };
 const servidor = http.createServer(async (req, res) => {
   cors(req, res);
@@ -203,6 +258,7 @@ const servidor = http.createServer(async (req, res) => {
   const dar = (st, cuerpo, tipo = 'application/json') => { res.writeHead(st, {'Content-Type': tipo, 'Cache-Control': 'no-store'}); res.end(typeof cuerpo === 'string' ? cuerpo : json(cuerpo)); };
   if (!origenOk(req.headers.origin)) return dar(403, 'origen', 'text/plain');
   if (u.pathname.startsWith('/api/feedback')) return rutaComentarios(req, res, u, dar);
+  if (u.pathname === '/api/visita' || u.pathname === '/api/dashboard-respaldo') return rutaVisitas(req, res, u, dar);
   if (req.method === 'OPTIONS') { res.setHeader('Access-Control-Allow-Methods', 'GET'); return dar(204, ''); }
   if (req.method !== 'GET') return dar(405, 'método', 'text/plain');
   if (u.pathname === '/api/sala/salud' || u.pathname === '/') return dar(200, {ok: true, respaldo: true});

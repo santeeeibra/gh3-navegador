@@ -1,9 +1,9 @@
 // Prueba del servidor de respaldo: node test-respaldo.mjs (usa el WebSocket cliente de Node 22+).
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-process.env.CLAVE_ADMIN = 'clave-de-prueba';
-process.env.COMENTARIOS_ARCHIVO = 'NUL';
-import {servidor} from './respaldo/servidor.mjs';
+process.env.CLAVE_ADMIN = 'clave-de-prueba-larga-1';
+import('node:os').then(()=>{}); const tmp = (await import('node:os')).tmpdir() + '/gh3-test-' + process.pid; process.env.COMENTARIOS_ARCHIVO = tmp + '-c.jsonl'; process.env.VISITAS_ARCHIVO = tmp + '-v.jsonl';
+const {servidor} = await import('./respaldo/servidor.mjs');
 const P = 8897, H = 'http://127.0.0.1:' + P, W = 'ws://127.0.0.1:' + P;
 await new Promise(r => servidor.listen(P, '127.0.0.1', r));
 const cli = (ruta) => new Promise((res, rej) => {
@@ -25,9 +25,16 @@ try {
   assert.equal((await pc({...ok, request_id: crypto.randomUUID(), rating: 9})).status, 400);
   assert.equal((await pc(ok, 'https://malo.example')).status, 403);
   assert.equal((await fetch(H + '/api/feedback/pendientes')).status, 401);
-  const pend = await (await fetch(H + '/api/feedback/pendientes', {headers: {authorization: 'Bearer clave-de-prueba'}})).json(); assert.equal(pend.total, 1); assert.equal(pend.comentarios[0].request_id, idc);
+  const pend = await (await fetch(H + '/api/feedback/pendientes', {headers: {authorization: 'Bearer clave-de-prueba-larga-1'}})).json(); assert.equal(pend.total, 1); assert.equal(pend.comentarios[0].request_id, idc);
   for (let i = 0; i < 2; i++) await pc({...ok, request_id: crypto.randomUUID()});
   assert.equal((await pc({...ok, request_id: crypto.randomUUID()})).status, 429);
+  // visitas + panel
+  const sid = crypto.randomUUID(), pv = (id, o = 'https://lasvegasherogame.com') => fetch(H + '/api/visita', {method: 'POST', headers: {'content-type': 'text/plain', Origin: o}, body: JSON.stringify({session_id: id, source: 'whatsapp', device: 'phone'})});
+  assert.equal((await pv(sid)).status, 200); assert.equal((await pv(sid)).status, 200); // misma sesión: una sola visita
+  assert.equal((await pv('x')).status, 400); assert.equal((await pv(crypto.randomUUID(), 'https://malo.example')).status, 403);
+  assert.equal((await fetch(H + '/api/dashboard-respaldo', {headers: {Origin: 'https://lasvegasherogame.com'}})).status, 401);
+  const pan = await (await fetch(H + '/api/dashboard-respaldo', {headers: {authorization: 'Bearer clave-de-prueba-larga-1', Origin: 'https://lasvegasherogame.com'}})).json();
+  assert.equal(pan.visitas.total, 1); assert.equal(pan.visitas.hoy, 1); assert.equal(pan.visitas.por_fuente.whatsapp, 1); assert.ok(pan.comentarios.total >= 1);
   const a = await cli('/api/sala/SALAB'); const ha = await a.espera('hola'); assert.equal(ha.anfitrion, true); assert.equal(ha.modo, 'cara');
   const b = await cli('/api/sala/SALAB'); const hb = await b.espera('hola'); assert.equal(hb.anfitrion, false);
   let jn = await a.espera('jugadores'); if (jn.n === 1) jn = await a.espera('jugadores'); assert.equal(jn.n, 2);
