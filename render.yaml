@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: gh3-salas-respaldo
+    runtime: node
+    plan: free
+    rootDir: artifacts/online-salas/respaldo
+    buildCommand: "true"
+    startCommand: node servidor.mjs
+    healthCheckPath: /api/sala/salud
