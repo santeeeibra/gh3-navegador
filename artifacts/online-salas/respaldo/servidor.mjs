@@ -30,7 +30,7 @@ function cerrar(r, w) {
   const s = w.s; if (s.cerrado) return;
   s.cerrado = true;
   if (s.chat) { r.socks.delete(w); return; }
-  for (const o of vivos(r)) Object.assign(o.s, o.s.fase !== 'jugando' ? {anfitrion: true, listo: false, fase: 'sala'} : {anfitrion: true});
+  for (const o of vivos(r)) Object.assign(o.s, o.s.fase !== 'jugando' ? {anfitrion: true, listo: false, eligio: false, seleccion: null, fase: 'sala'} : {anfitrion: true});
   enviar(r, {t: 'chau', id: s.id, anfitrion: true}, w);
   r.socks.delete(w);
 }
@@ -63,12 +63,15 @@ function mensaje(r, w, msg) {
   if (o.t === 'chau') { cerrar(r, w); w.c.close(1000, 'salida'); return; }
   if (o.t === 'lista' && s.anfitrion && !enFase(r, ['jugando', 'cargando']) && /^[a-z0-9_]{1,64}$/.test(o.cancion) && difs.includes(o.dificultad)) {
     const seleccion = {cancion: o.cancion, dificultad: o.dificultad, modo: r.modo || (o.modo === 'coop' ? 'coop' : 'cara'), ronda: crypto.randomUUID()};
-    for (const x of vivos(r)) Object.assign(x.s, {seleccion, listo: false, fase: 'cargando'});
+    for (const x of vivos(r)) Object.assign(x.s, {seleccion, listo: false, eligio: false, fase: 'cargando'});
     enviar(r, {t: 'lista', ...seleccion}); return;
   }
+  if (o.t === 'lista' && s.anfitrion) { w.c.send(json({t: 'rechazo', motivo: enFase(r, ['jugando']) ? 'jugando' : enFase(r, ['cargando']) ? 'cargando' : 'invalida'})); return; }
+  if (o.t === 'eleccion' && s.fase === 'cargando' && o.ronda === s.seleccion?.ronda) { s.eligio = true; enviar(r, {t: 'eleccion', ronda: o.ronda}, w); return; }
+  if (o.t === 'cancelar' && s.fase === 'cargando' && o.ronda === s.seleccion?.ronda) { for (const x of vivos(r)) Object.assign(x.s, {seleccion: null, listo: false, eligio: false, fase: 'sala'}); enviar(r, {t: 'cancelada', ronda: o.ronda}); return; }
   if (o.t === 'reiniciar' && s.anfitrion && s.seleccion && enFase(r, ['jugando', 'cargando', 'terminado'])) {
     const seleccion = {...s.seleccion, ronda: crypto.randomUUID()};
-    for (const x of vivos(r)) Object.assign(x.s, {seleccion, listo: false, fase: 'cargando'});
+    for (const x of vivos(r)) Object.assign(x.s, {seleccion, listo: false, eligio: false, fase: 'cargando'});
     enviar(r, {t: 'lista', ...seleccion, reinicio: true}); return;
   }
   if (o.t === 'listo' && s.fase === 'cargando' && o.ronda === s.seleccion?.ronda) {
@@ -103,7 +106,7 @@ function mensaje(r, w, msg) {
     const ahora = Date.now();
     if (o.t === 'estado' && ahora - (s.ultimo ?? 0) < 180) return;
     s.ultimo = ahora; if (o.t === 'fin') s.fase = 'terminado';
-    enviar(r, {t: o.t, ronda: s.seleccion.ronda, id: s.id, puntos, racha, rock, energia, activo: o.activo === true, fallida: o.fallida === true, prec, mult: Number.isFinite(o.mult) ? Math.max(1, Math.min(8, o.mult | 0)) : 1}, w);
+    enviar(r, {t: o.t, ronda: s.seleccion.ronda, id: s.id, puntos, racha, rock, energia, activo: o.activo === true, fallida: o.fallida === true, pausado: o.pausado === true, prec, mult: Number.isFinite(o.mult) ? Math.max(1, Math.min(8, o.mult | 0)) : 1}, w);
   }
 }
 
@@ -129,10 +132,10 @@ function conectarSala(c, codigo) {
   const anfitrion = socks.length === 0, id = crypto.randomUUID();
   const s = {id, anfitrion, fase: 'sala', listo: false};
   if (modoFija(codigo)) r.modo = modoFija(codigo);
-  const seleccion = socks[0]?.s.seleccion;
+  const previo = socks[0]?.s, seleccion = previo?.fase === 'cargando' ? previo.seleccion : null;
   unirse(r, c, s);
   c.send(json({t: 'hola', id, anfitrion, modo: modoFija(codigo)}));
-  if (seleccion) { s.seleccion = seleccion; s.fase = 'cargando'; c.send(json({t: 'lista', ...seleccion})); }
+  if (seleccion) { s.seleccion = seleccion; s.fase = 'cargando'; c.send(json({t: 'lista', ...seleccion})); if (previo.eligio) c.send(json({t: 'eleccion', ronda: seleccion.ronda})); }
   enviar(r, {t: 'jugadores', n: vivos(r).length});
 }
 
