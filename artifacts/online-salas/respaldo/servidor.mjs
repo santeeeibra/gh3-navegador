@@ -61,7 +61,7 @@ function mensaje(r, w, msg) {
   }
   if (o.t === 'hora' && Number.isFinite(o.cli)) return w.c.send(json({t: 'hora', srv: Date.now(), cli: o.cli}));
   if (o.t === 'chau') { cerrar(r, w); w.c.close(1000, 'salida'); return; }
-  if (o.t === 'lista' && s.anfitrion && !enFase(r, ['jugando', 'cargando']) && /^[a-z0-9_]{1,64}$/.test(o.cancion) && difs.includes(o.dificultad)) {
+  if (o.t === 'lista' && s.anfitrion && !enFase(r, ['jugando', 'cargando']) && /^[a-z0-9_-]{1,64}$/.test(o.cancion) && difs.includes(o.dificultad)) {
     const seleccion = {cancion: o.cancion, dificultad: o.dificultad, modo: r.modo || (o.modo === 'coop' ? 'coop' : 'cara'), ronda: crypto.randomUUID()};
     for (const x of vivos(r)) Object.assign(x.s, {seleccion, listo: false, eligio: false, fase: 'cargando'});
     enviar(r, {t: 'lista', ...seleccion}); return;
@@ -87,11 +87,11 @@ function mensaje(r, w, msg) {
   if (o.t === 'rtc' && ['oferta', 'respuesta', 'cand', 'hola', 'fin', 'hablando'].includes(o.k) && msg.length <= 12000) { enviar(r, {t: 'rtc', k: o.k, d: o.d ?? null, id: s.id}, w); return; }
   if (o.t === 'menu' && s.anfitrion && !['jugando', 'cargando'].includes(s.fase)) {
     const ahora = Date.now(); if (ahora - (s.ultimoMenu ?? 0) < 40) return;
-    const pk = (v, max) => typeof v === 'string' && /^[a-z0-9_]+$/.test(v) ? v.slice(0, max) : '', n = v => Number.isFinite(v) ? Math.max(0, Math.min(999, v | 0)) : 0;
+    const pk = (v, max) => typeof v === 'string' && /^[a-z0-9_-]+$/.test(v) ? v.slice(0, max) : '', n = v => Number.isFinite(v) ? Math.max(0, Math.min(999, v | 0)) : 0;
     s.ultimoMenu = ahora;
     enviar(r, {t: 'menu', screen: pk(o.screen, 16), group: n(o.group), selected: n(o.selected), song: pk(o.song, 64), difficulty: pk(o.difficulty, 8), page: pk(o.page, 16)}, w); return;
   }
-  if (o.t === 'sugerir' && !s.anfitrion && !['jugando', 'cargando'].includes(s.fase) && typeof o.cancion === 'string' && /^[a-z0-9_]{1,64}$/.test(o.cancion)) {
+  if (o.t === 'sugerir' && !s.anfitrion && !['jugando', 'cargando'].includes(s.fase) && typeof o.cancion === 'string' && /^[a-z0-9_-]{1,64}$/.test(o.cancion)) {
     const ahora = Date.now(); if (ahora - (s.ultimaSug ?? 0) < 1000) return;
     s.ultimaSug = ahora; enviar(r, {t: 'sugerir', cancion: o.cancion}, w); return;
   }
