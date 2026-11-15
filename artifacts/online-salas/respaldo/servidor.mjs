@@ -10,9 +10,10 @@ import {aceptar, rechazar} from './ws-minimo.mjs';
 
 const json = o => JSON.stringify(o);
 const difs = ['easy', 'medium', 'hard', 'expert'];
-const FIJAS = Array.from({length: 20}, (_, i) => 'SALA' + String.fromCharCode(65 + i));
+const PODERES = ['Lightning', 'DifficultyUp', 'DoubleNotes', 'LeftyNotes', 'BrokenString', 'WhammyAttack', 'PowerUpSteal', 'DeathLick'];
+const FIJAS = Array.from({length: 25},(_, i) => 'SALA' + String.fromCharCode(65 + i));
 const limpiarNombre = n => typeof n === 'string' ? n.toUpperCase().replace(/[^A-Z0-9ÑÁÉÍÓÚÜ _-]/g, '').trim().slice(0, 14) : '';
-const modoFija = c => { const i = FIJAS.indexOf(c); return i < 0 ? null : (i < 10 ? 'cara' : 'coop'); };
+const modoFija = c => { const i = FIJAS.indexOf(c); return i < 0 ? null : (i < 10 ? 'cara' : i < 20 ? 'coop' : 'duelo'); };
 const extra = process.env.ORIGENES ? new RegExp(process.env.ORIGENES) : null;
 const origenOk = o => !o || /^https:\/\/(www\.)?lasvegasherogame\.com$/.test(o) || /^https:\/\/([a-z0-9-]+\.)?lvh3\.pages\.dev$/.test(o)
   || /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(o) || !!extra?.test(o);
@@ -62,7 +63,7 @@ function mensaje(r, w, msg) {
   if (o.t === 'hora' && Number.isFinite(o.cli)) return w.c.send(json({t: 'hora', srv: Date.now(), cli: o.cli}));
   if (o.t === 'chau') { cerrar(r, w); w.c.close(1000, 'salida'); return; }
   if (o.t === 'lista' && s.anfitrion && !enFase(r, ['jugando', 'cargando']) && /^[a-z0-9_-]{1,64}$/.test(o.cancion) && difs.includes(o.dificultad)) {
-    const seleccion = {cancion: o.cancion, dificultad: o.dificultad, modo: r.modo || (o.modo === 'coop' ? 'coop' : 'cara'), ronda: crypto.randomUUID()};
+    const seleccion = {cancion: o.cancion, dificultad: o.dificultad, modo: r.modo || (o.modo === 'coop' ? 'coop' : o.modo === 'duelo' ? 'duelo' : 'cara'), ronda: crypto.randomUUID()};
     for (const x of vivos(r)) Object.assign(x.s, {seleccion, listo: false, eligio: false, fase: 'cargando'});
     enviar(r, {t: 'lista', ...seleccion}); return;
   }
@@ -99,6 +100,11 @@ function mensaje(r, w, msg) {
   if (o.t === 'ev' && s.fase === 'jugando' && o.ronda === s.seleccion?.ronda && Number.isFinite(o.song) && Array.isArray(o.ev) && o.ev.length <= 32) {
     enviar(r, {t: 'ev', ronda: o.ronda, song: o.song, ev: o.ev}, w); return;
   }
+  if (o.t === 'ataque' && s.fase === 'jugando' && o.ronda === s.seleccion?.ronda && s.seleccion?.modo === 'duelo' && PODERES.includes(o.poder)) {
+    if (o.entrega === true) { enviar(r, {t: 'ataque', ronda: o.ronda, poder: o.poder, entrega: true, id: s.id}, w); return; } // Claude 15/11: carta robada que la víctima entrega al ladrón
+    const ahora = Date.now(); if (ahora - (s.ultimoAtaque ?? 0) < 150) return;
+    s.ultimoAtaque = ahora; enviar(r, {t: 'ataque', ronda: o.ronda, poder: o.poder, id: s.id}, w); return;
+  }
   if (o.t === 'pausa' && s.fase === 'jugando' && o.ronda === s.seleccion?.ronda) { enviar(r, {t: 'pausa', ronda: o.ronda, on: o.on === true}, w); return; }
   if ((o.t === 'estado' || o.t === 'fin') && s.fase === 'jugando' && o.ronda === s.seleccion?.ronda) {
     const {puntos, racha, rock, energia} = o; const prec = Number.isFinite(o.prec) ? Math.max(0, Math.min(1, o.prec)) : null;
@@ -106,7 +112,7 @@ function mensaje(r, w, msg) {
     const ahora = Date.now();
     if (o.t === 'estado' && ahora - (s.ultimo ?? 0) < 180) return;
     s.ultimo = ahora; if (o.t === 'fin') s.fase = 'terminado';
-    enviar(r, {t: o.t, ronda: s.seleccion.ronda, id: s.id, puntos, racha, rock, energia, activo: o.activo === true, fallida: o.fallida === true, pausado: o.pausado === true, prec, mult: Number.isFinite(o.mult) ? Math.max(1, Math.min(8, o.mult | 0)) : 1}, w);
+    enviar(r, {t: o.t, ronda: s.seleccion.ronda, id: s.id, puntos, racha, rock, energia, activo: o.activo === true, fallida: o.fallida === true, pausado: o.pausado === true, prec, mult: Number.isFinite(o.mult) ? Math.max(1, Math.min(8, o.mult | 0)) : 1, ...(s.seleccion?.modo === 'duelo' && Array.isArray(o.poderes) ? {poderes: o.poderes.slice(0, 3).filter((p) => PODERES.includes(p))} : {})}, w); // Claude 15/11: cartas del rival para el HUD de Battle
   }
 }
 
